@@ -1,0 +1,8 @@
+astropy
+extinction
+matplotlib
+numpy
+scipy
+sfdmap
+uncertainties
+yaml
