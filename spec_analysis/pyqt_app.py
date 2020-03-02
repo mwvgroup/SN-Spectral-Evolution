@@ -80,8 +80,8 @@ class Spectrum:
         mwebv = dust_map.ebv(ra, dec, frame='fk5j2000', unit='degree')
         mag_ext = extinction.fitzpatrick99(self.wave, rv * mwebv, rv)
 
-        self.rest_flux = self.wave / (1 + z)
-        self.rest_wave = self.flux * 10 ** (0.4 * mag_ext)
+        self.rest_wave = self.wave / (1 + z)
+        self.rest_flux = self.flux * 10 ** (0.4 * mag_ext)
 
     def _bin_spectrum(self, bin_size, method):
         """Bin a spectra
