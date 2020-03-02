@@ -1,33 +1,21 @@
 # !/usr/bin/env python3.7
 # -*- coding: UTF-8 -*-
 
-"""This module calculates the properties of spectral features."""
+"""The ``measure_feature`` module provides functions for calculating the
+properties of spectral features.
+"""
 
-import extinction
 import numpy as np
-import sfdmap
-import yaml
 from astropy import units
 from astropy.constants import c
-from pathlib import Path
-from scipy.ndimage import gaussian_filter
 from scipy.optimize import curve_fit
 from uncertainties import ufloat
 from uncertainties.unumpy import nominal_values, std_devs
 
 from .exceptions import FeatureOutOfBounds
 
-# File paths for external data
-_file_dir = Path(__file__).resolve().parent
-dust_dir = _file_dir.parent / 'schlegel98_dust_map'
-line_locations_path = _file_dir / 'features.yml'
 
-dust_map = sfdmap.SFDMap(dust_dir)
-with open(line_locations_path) as infile:
-    line_locations = yaml.load(infile, Loader=yaml.FullLoader)
-
-
-def feature_area(wave, flux):
+def area(wave, flux):
     """Calculate the area of a feature
 
     Args:
@@ -44,7 +32,7 @@ def feature_area(wave, flux):
     return continuum_area - spectrum_area
 
 
-def feature_pew(wave, flux):
+def pew(wave, flux):
     """Calculate the pseudo equivalent-width of a feature
 
     Args:
@@ -69,7 +57,7 @@ def feature_pew(wave, flux):
     return continuum, norm_flux, pew
 
 
-def feature_velocity(rest_frame, wave, flux, unit=None):
+def velocity(rest_frame, wave, flux, unit=None):
     """Calculate the velocity of a feature
 
     Args:
@@ -164,74 +152,3 @@ def guess_feature_bounds(wave, flux, feature):
         wave, flux, feature['lower_red'], feature['upper_red'], 'max')
 
     return feat_start, feat_end
-
-
-def correct_extinction(wave, flux, ra, dec, z, rv=None):
-    """Rest frame spectra and correct for MW extinction
-
-    Spectra are rest-framed and corrected for MW extinction using the
-    Schlegel et al. 98 dust map and the Fitzpatrick et al. 99 extinction law.
-    if rv is not given, a value of 1.7 is used for E(B - V) > .3 and a value
-    of 3.1 is used otherwise.
-
-    Args:
-        wave (ndarray): Array of wavelength values
-        flux (ndarray): Array of flux values
-        ra     (float): Ra coordinate of the object
-        dec    (float): Dec coordinate of the object
-        z      (float): Redshift of the object
-        rv     (float): Rv value to use for extinction
-
-    Returns:
-        - The rest framed wavelengths
-        - The flux corrected for extinction
-    """
-
-    rv = 3.1 if rv is None else rv
-    mwebv = dust_map.ebv(ra, dec, frame='fk5j2000', unit='degree')
-    mag_ext = extinction.fitzpatrick99(wave, rv * mwebv, rv)
-    flux = flux * 10 ** (0.4 * mag_ext)
-    rest_wave = wave / (1 + z)
-    return rest_wave, flux
-
-
-def bin_spectrum(wave, flux, bin_size=5, method='avg'):
-    """Bin a spectra
-
-    Args:
-        wave   (ndarray): An array of wavelengths in angstroms
-        flux   (ndarray): An array of flux for each wavelength
-        bin_size (float): The width of the bins
-        method     (str): Either 'avg', 'sum', or 'gauss' the values of each bin
-
-    Returns:
-        - The center of each bin
-        - The binned flux values
-    """
-
-    if (method != 'gauss') and any(bin_size <= wave[1:] - wave[:-1]):
-        return wave, flux
-
-    min_wave = np.floor(np.min(wave))
-    max_wave = np.floor(np.max(wave))
-    bins = np.arange(min_wave, max_wave + 1, bin_size)
-
-    hist, bin_edges = np.histogram(wave, bins=bins, weights=flux)
-    bin_centers = bin_edges[:-1] + ((bin_edges[1] - bin_edges[0]) / 2)
-
-    if method == 'sum':
-        return bin_centers, hist
-
-    elif method == 'avg':
-        bin_means = (
-                np.histogram(wave, bins=bins, weights=flux)[0] /
-                np.histogram(wave, bins)[0]
-        )
-
-        return bin_centers, bin_means
-
-    elif method == 'gauss':
-        return wave, gaussian_filter(flux, bin_size)
-
-    else:
-        raise ValueError(f'Unknown method {method}')

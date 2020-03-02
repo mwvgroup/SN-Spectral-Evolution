@@ -97,7 +97,7 @@ class SimulatedSpectrum:
 
 
 class Area(TestCase):
-    """Tests for the ``feature_area`` function"""
+    """Tests for the ``area`` function"""
 
     def test_tophat_area(self):
         """Test the correct area is returned for an inverse top-hat feature"""
@@ -129,7 +129,7 @@ class Area(TestCase):
 
 
 class PEW(TestCase):
-    """Tests for the ``feature_pew`` function"""
+    """Tests for the ``pew`` function"""
 
     def test_tophat(self):
         """Test the correct pew is returned for an inverse top-hat"""
@@ -176,7 +176,7 @@ class PEW(TestCase):
 
 
 class Velocity(TestCase):
-    """Tests for the ``feature_area`` function"""
+    """Tests for the ``area`` function"""
 
     def test_velocity_estimation(self):
         wave = np.arange(1000, 2000)

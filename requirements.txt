@@ -1,3 +1,6 @@
+sndata
+PyQt5
+pyqtgraph
 astropy
 extinction
 matplotlib
