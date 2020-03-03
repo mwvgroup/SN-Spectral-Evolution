@@ -127,6 +127,13 @@ class Spectrum:
             raise ValueError(f'Unknown method {method}')
 
     def prepare_spectrum(self, rv=3.1, bin_size=5, method='avg'):
+        """Correct for extinction, rest-frame, and bin the spectrum
+
+        Args:
+            bin_size (float): Bin size in units of Angstroms
+            method     (str): Either 'avg' or 'sum' the values of each bin
+            rv       (float): Rv value to use for extinction (Default: 3.1)
+        """
 
         self._correct_extinction(rv=rv)
         self._bin_spectrum(bin_size=bin_size, method=method)
@@ -208,7 +215,7 @@ class Spectrum:
 
 class GraphicalInspector(QtWidgets.QMainWindow):
 
-    def __init__(self, data_release):
+    def __init__(self, data_release, obj_ids=None, process_func=None):
         """Visualization tool for measuring spectroscopic features
 
         Args:
@@ -225,6 +232,11 @@ class GraphicalInspector(QtWidgets.QMainWindow):
         if data_type != 'spectroscopic':
             raise ValueError(f'Requires spectroscopic data. Passed {data_type}')
 
+        # Set defaults
+        default_obj_ids = self.data_release.get_available_ids()
+        self._obj_ids = obj_ids if obj_ids else default_obj_ids
+        self.process_func = process_func if process_func else lambda x: x
+
         # Setup tasks
         self._connect_signals()
         self._format_plot_widget()
@@ -234,9 +246,21 @@ class GraphicalInspector(QtWidgets.QMainWindow):
     def _create_data_iterator(self):
         """Return an iterator over individual spectra in ``self.data_release``"""
 
-        for object_data in self.data_release.iter_data():
-            object_data = object_data.group_by('time')
-            for spectrum_data in object_data.groups:
+        total_objects = len(self._obj_ids)
+        for i, obj_id in enumerate(self._obj_ids):
+            # Retrieve, format, and partition object data
+            object_data = self.data_release.get_data_for_id(obj_id)
+            object_data = self.process_func(object_data)
+            if not object_data:
+                continue
+
+            # Update the progress bar
+            completion = i * 100 / total_objects
+            self.progress_bar.setValue(completion)
+            self.progress_label.setText(f'{completion:00.2f} %')
+
+            # Yield individual spectra for the object
+            for spectrum_data in object_data.group_by('time').groups:
                 spectrum = Spectrum(
                     spectrum_data['wavelength'],
                     spectrum_data['flux'],
@@ -270,24 +294,27 @@ class GraphicalInspector(QtWidgets.QMainWindow):
         self.graph_widget.setLabel('bottom', 'Wavelength', color='k', size=25)
         self.graph_widget.showGrid(x=True, y=True)
 
-    def guess_feature_locations(self, spectrum):
-        return [4000]
-
     def plot_next_spectrum(self):
         """Plot the next spectrum from the data release"""
 
         spectrum = next(self._data_iter)
-        x, y, obj_id = spectrum.wave, spectrum.flux, spectrum.meta['obj_id']
 
-        # Format widget and plot the new spectrum
+        # Format the plotting widget
+        title = f'Object Id: {spectrum.meta["obj_id"]}'
         self.graph_widget.clear()
-        self.graph_widget.setXRange(min(x), max(x), padding=0)
-        self.graph_widget.setYRange(min(y), max(y), padding=0)
-        self.graph_widget.setTitle(obj_id, color='k')
-        self.graph_widget.plot(x, y, pen={'color': 'k'})
+        self.graph_widget.setTitle(title)
 
-        # Highlight feature locations
-        line_style = {'width': 5, 'color': 'r'}
-        for x_val in self.guess_feature_locations(spectrum):
-            new_line = pg.InfiniteLine([x_val, 0], pen=line_style)
-            self.graph_widget.addItem(new_line)
+        # plot binned and rest framed spectrum
+        spectrum_style = {'color': 'k'}
+        binned_style = {'color': 'b'}
+        self.graph_widget.plot(spectrum.rest_wave, spectrum.rest_flux, pen=spectrum_style)
+        self.graph_widget.plot(spectrum.bin_wave, spectrum.bin_flux, pen=binned_style)
+
+        # Plot boundaries of features
+        feature_locations = [4000, ]
+        feature_line_style = {'width': 5, 'color': 'r'}
+        for x_val in feature_locations:
+            new_line = pg.InfiniteLine([x_val, 0], pen=feature_line_style)
+            # self.graph_widget.addItem(new_line)
+
+        self.graph_widget.autoRange()
