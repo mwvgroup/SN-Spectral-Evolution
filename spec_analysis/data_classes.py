@@ -5,10 +5,9 @@
 astronomical data.
 """
 
-import extinction
-from copy import deepcopy
 from pathlib import Path
 
+import extinction
 import numpy as np
 import sfdmap
 from scipy.ndimage import gaussian_filter
@@ -22,10 +21,49 @@ _dust_dir = _file_dir / 'schlegel98_dust_map'
 dust_map = sfdmap.SFDMap(_dust_dir)
 
 
-class Spectrum:
-    """Graphical interface for measuring spectral features"""
+def bin_sum(x, y, bins):
+    """Fined the binned sum of a sampled function
 
-    def __init__(self, wave, flux, meta, line_locations):
+    Args:
+        x    (ndarray): Array of x values
+        y    (ndarray): Array of y values
+        bins (ndarray): Bin boundaries
+
+    Return:
+        - An array of bin centers
+        - An array of binned fluxes
+    """
+
+    hist, bin_edges = np.histogram(x, bins=bins, weights=y)
+    bin_centers = bin_edges[:-1] + ((bin_edges[1] - bin_edges[0]) / 2)
+    return bin_centers, hist
+
+
+def bin_avg(x, y, bins):
+    """Fined the binned average of a sampled function
+
+    Args:
+        x    (ndarray): Array of x values
+        y    (ndarray): Array of y values
+        bins (ndarray): Bin boundaries
+
+    Return:
+        - An array of bin centers
+        - An array of binned fluxes
+    """
+
+    bin_centers, _ = bin_sum(x, y, bins)
+    bin_means = (
+            np.histogram(x, bins=bins, weights=y)[0] /
+            np.histogram(x, bins)[0]
+    )
+    return bin_centers, bin_means
+
+
+class Spectrum:
+    """Object representation of an observed spectrum"""
+
+    def __init__(self, wave, flux, meta):
         """Measures pEW and area of spectral features
 
         target coordinates are expected in degrees.
@@ -39,24 +77,20 @@ class Spectrum:
         self.wave = wave
         self.flux = flux
         self.meta = meta
-        self._line_locations = line_locations
 
         # Place holders for intermediate analysis results
         self.bin_wave, self.bin_flux = None, None
         self.rest_flux, self.rest_wave = None, None
         self.feature_bounds = []
 
-    @property
-    def line_locations(self):
-        return deepcopy(self._line_locations)
-
     def _correct_extinction(self, rv):
         """Rest frame spectra and correct for MW extinction
 
         Spectra are rest-framed and corrected for MW extinction using the
-        Schlegel et al. 98 dust map and the Fitzpatrick et al. 99 extinction law.
-        if rv is not given, a value of 1.7 is used for E(B - V) > .3 and a value
-        of 3.1 is used otherwise.
+        Schlegel et al. 98 dust map and the Fitzpatrick et al. 99 extinction
+        law. if rv is not given, a value of 1.7 is used for E(B - V) > .3 and
+        a value of 3.1 is used otherwise. Results are set to the
+        ``self.rest_wave`` and ``self.rest_flux`` attributes.
 
         Args:
             rv  (float): Rv value to use for extinction
@@ -66,27 +100,32 @@ class Spectrum:
             - The flux corrected for extinction
         """
 
-        ra, dec, z = self.meta['ra'], self.meta['dec'], self.meta['z']
-
         # Determine extinction
+        ra, dec, z = self.meta['ra'], self.meta['dec'], self.meta['z']
         mwebv = dust_map.ebv(ra, dec, frame='fk5j2000', unit='degree')
         mag_ext = extinction.fitzpatrick99(self.wave, rv * mwebv, rv)
 
+        # Correct flux to rest-frame
         self.rest_wave = self.wave / (1 + z)
         self.rest_flux = self.flux * 10 ** (0.4 * mag_ext)
 
     def _bin_spectrum(self, bin_size, method):
-        """Bin a spectra
+        """Bin a spectrum to a given resolution
+
+        Bins the values of ``self.rest_wave`` and ``self.rest_flux`` and sets
+        the results to ``self.bin_wave``, and self.bin_flux``.
 
         Args:
             bin_size (float): The width of the bins
-            method     (str): Either 'avg', 'sum', or 'gauss' the values of each bin
+            method     (str): Either 'avg', 'sum', or 'gauss'
 
         Returns:
             - The center of each bin
             - The binned flux values
         """
 
+        # Don't apply binning if requested resolution is the same or less than
+        # the observed wavelength resolution
         if (method != 'gauss') and any(bin_size <= self.rest_wave[1:] - self.rest_wave[:-1]):
             self.bin_wave = self.rest_wave
             self.bin_flux = self.rest_flux
@@ -95,21 +134,13 @@ class Spectrum:
         max_wave = np.floor(np.max(self.rest_wave))
         bins = np.arange(min_wave, max_wave + 1, bin_size)
 
-        hist, bin_edges = np.histogram(self.rest_wave, bins=bins, weights=self.rest_flux)
-        bin_centers = bin_edges[:-1] + ((bin_edges[1] - bin_edges[0]) / 2)
-
         if method == 'sum':
-            self.bin_wave = bin_centers
-            self.bin_flux = hist
+            self.bin_wave, self.bin_flux = bin_sum(
+                self.rest_wave, self.rest_flux, bins)
 
         elif method == 'avg':
-            bin_means = (
-                    np.histogram(self.rest_wave, bins=bins, weights=self.rest_flux)[0] /
-                    np.histogram(self.rest_wave, bins)[0]
-            )
-
-            self.bin_wave = bin_centers
-            self.bin_flux = bin_means
+            self.bin_wave, self.bin_flux = bin_avg(
+                self.rest_wave, self.rest_flux, bins)
 
         elif method == 'gauss':
             self.bin_wave = self.rest_wave
@@ -131,7 +162,7 @@ class Spectrum:
         self._bin_spectrum(bin_size=bin_size, method=method)
 
     def _sample_feature_properties(
-            self, feat_name, feat_start, feat_end, nstep=5, return_samples=False):
+            self, feat_start, feat_end, rest_frame, nstep=5, return_samples=False):
         """Calculate the properties of a single feature in a spectrum
 
         Velocity values are returned in km / s. Error values are determined
@@ -139,9 +170,9 @@ class Spectrum:
         boundaries ``nstep`` flux measurements in either direction.
 
         Args:
-            feat_name        (str): The name of the feature
             feat_start     (float): Starting wavelength of the feature
             feat_end       (float): Ending wavelength of the feature
+            rest_frame     (float): Rest frame location of the specified feature
             nstep            (int): Number of samples taken in each direction
             return_samples  (bool): Return samples instead of averaged values
 
@@ -150,9 +181,6 @@ class Spectrum:
             - (The equivalent width, its formal error, and its sampling error)
             - (The feature area, its formal error, and its sampling error)
         """
-
-        # Get rest frame location of the specified feature
-        rest_frame = self.line_locations[feat_name]['restframe']
 
         # Get indices for beginning and end of the feature
         idx_start = np.where(self.bin_wave == feat_start)[0][0]

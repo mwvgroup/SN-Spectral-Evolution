@@ -115,8 +115,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 spectrum = Spectrum(
                     spectrum_data['wavelength'],
                     spectrum_data['flux'],
-                    spectrum_data.meta,
-                    _line_locations)
+                    spectrum_data.meta)
 
                 spectrum.prepare_spectrum()
                 yield spectrum
