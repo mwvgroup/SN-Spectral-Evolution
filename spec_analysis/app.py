@@ -12,14 +12,51 @@ import yaml
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
 from sndata.base_classes import SpectroscopicRelease
 
 from .data_classes import Spectrum
 
 _file_dir = Path(__file__).resolve().parent
+_gui_layouts_dir = _file_dir / 'gui_layouts'
 _line_locations_path = _file_dir / 'features.yml'
 with open(_line_locations_path) as infile:
     _line_locations = yaml.load(infile, Loader=yaml.FullLoader)
+
+
+class TableViewer(QtWidgets.QMainWindow):
+    """Simple interface for astropy tables"""
+
+    def __init__(self, parent, data):
+        """Display data from an astropy table
+
+        Args:
+            data (Table): An astropy table
+        """
+
+        super(TableViewer, self).__init__(parent)
+        uic.loadUi(_gui_layouts_dir / 'tableviewer.ui', self)
+
+        # populate table
+        headers = []
+        for i_col, column_name in enumerate(data.colnames):
+            headers.append(column_name)
+            for i_row, item in enumerate(data[column_name]):
+                newitem = QTableWidgetItem(item)
+                self.tableWidget.setItem(i_row, i_col, newitem)
+
+        self.tableWidget.setHorizontalHeaderLabels(headers)
+        #self.tableWidget.resizeColumnsToContents()
+        #self.tableWidget.resizeRowsToContents()
+        self.data = data
+
+    def save_file(self):
+        """Save the displayed data to file"""
+
+        file_path, _ = QFileDialog.getSaveFileName(self)
+        file_path = Path(file_path).with_suffix('.csv')
+        if file_path:
+            self.data.write(file_path)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -32,8 +69,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
 
         super().__init__()
-        gui_layouts_dir = Path(__file__).resolve().parent / 'gui_layouts'
-        uic.loadUi(gui_layouts_dir / 'mainwindow.ui', self)
+        uic.loadUi(_gui_layouts_dir / 'mainwindow.ui', self)
 
         # Make sure the passed data release is spectroscopic
         self.data_release = data_release
@@ -51,6 +87,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self._format_plot_widget()
         self._data_iter = self._create_data_iterator()
         self.plot_next_spectrum()
+        self.actionView_data.triggered.connect(self.table_viewer)
+
+    def table_viewer(self):
+        TableViewer(self, self._current_data).show()
 
     def _create_data_iterator(self):
         """Return an iterator over individual spectra in ``self.data_release``"""
@@ -71,6 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Yield individual spectra for the object
             for spectrum_data in object_data.group_by('time').groups:
+                self._current_data = spectrum_data
                 spectrum = Spectrum(
                     spectrum_data['wavelength'],
                     spectrum_data['flux'],
