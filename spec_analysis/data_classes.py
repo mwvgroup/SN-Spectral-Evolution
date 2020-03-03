@@ -1,8 +1,31 @@
 # !/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
+# Todo: finish example
 """The ``data_classes`` module provides object representations of
 astronomical data.
+
+Usage Example
+-------------
+
+.. code-block:: python
+   :linenos:
+
+   import numpy as np
+   from spec_analysis.app import run
+
+   # Define demo data
+   # ``meta`` must have at minimum the keys ``z``, ``ra`` and ``dec``
+   wave = np.arange(1000, 2000)
+   flux = np.random.random(wave)
+   meta = {'z': 0.1, 'ra': 0.15, 'dec': -0.2}
+   spectrum = Spectrum(wave, flux, meta)
+
+   # The meta data is still available in the object:
+   print(spectrum.meta)
+
+Documentation
+-------------
 """
 
 from pathlib import Path

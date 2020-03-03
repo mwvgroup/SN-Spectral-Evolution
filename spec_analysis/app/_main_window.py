@@ -9,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 import pyqtgraph as pg
-import yaml
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
@@ -17,15 +16,12 @@ from PyQt5.QtWidgets import QApplication
 from astropy.table import MaskedColumn, Table
 from sndata.base_classes import SpectroscopicRelease
 
-from . import measure_feature
-from .data_classes import Spectrum
-from .exceptions import FeatureOutOfBounds
+from spec_analysis import measure_feature
+from spec_analysis.data_classes import Spectrum
+from spec_analysis.exceptions import FeatureOutOfBounds
 
 _file_dir = Path(__file__).resolve().parent
 _gui_layouts_dir = _file_dir / 'gui_layouts'
-_line_locations_path = _file_dir / 'features.yml'
-with open(_line_locations_path) as infile:
-    _line_locations = yaml.load(infile, Loader=yaml.FullLoader)
 
 # Enable antialiasing for prettier plots
 pg.setConfigOptions(antialias=True)
@@ -33,8 +29,10 @@ pg.setConfigOptions(antialias=True)
 
 def _create_output_table(*args, **kwargs):
     """Create an empty astropy table for storing spectra results
+
     Args:
         Any arguments for instantiating ``Table`` except ``names`` or ``dtype``
+
     Returns:
         An empty astropy Table
     """
@@ -57,11 +55,12 @@ def _create_output_table(*args, **kwargs):
 class MainWindow(QtWidgets.QMainWindow):
     """The main window for visualizing and measuring spectra"""
 
-    def __init__(self, data_release, features, out_path, obj_ids=None, pre_process=None):
+    def __init__(self, data_release, out_path, features, obj_ids=None, pre_process=None):
         """Visualization tool for measuring spectroscopic features
 
         Args:
             data_release (SpectroscopicRelease): An sndata style data release
+            out_path         (str): Name of CSV file to save results to
             features        (dict): Feature definitions
             obj_ids         (list): Optionally only consider a subset of Id's
             pre_process (Callable): Function to prepare data before plotting
@@ -323,16 +322,3 @@ class MainWindow(QtWidgets.QMainWindow):
         new_row.append(self.notes_text_edit.toPlainText())
         self.tabulated_results.add_row(new_row)
         self.plot_next_feature()
-
-
-def run(data_release, features=_line_locations, out_path='./test.csv', obj_ids=None, pre_process=None):
-    """Run the graphical interface
-
-    args:
-        release (SpectroscopicRelease): A spectroscopic data release
-    """
-
-    app = QApplication([])
-    window = MainWindow(data_release, features, out_path, obj_ids, pre_process)
-    window.show()
-    app.exec_()
