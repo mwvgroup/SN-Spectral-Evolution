@@ -14,7 +14,7 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QApplication
-from astropy.table import Table, MaskedColumn
+from astropy.table import MaskedColumn, Table
 from sndata.base_classes import SpectroscopicRelease
 
 from . import measure_feature
@@ -98,8 +98,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tabulated_results = _create_output_table()
 
         # Setup tasks
-        self._data_iter = self._create_data_iterator()
-        self._feature_iter = self._create_feature_iterator()
+        self.data_iter = self._create_data_iterator()
+        self.feature_iter = self._create_feature_iterator()
         self._init_plot_widget()  # Defines a few new attributes and signals
         self.plot_next_spectrum()  # Sets values for some of those attributes
         self.plot_next_feature()
@@ -210,7 +210,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Plot the next spectrum from the data release"""
 
         # Clear the plot of the previous spectrum
-        next(self._data_iter)
+        next(self.data_iter)
         spectrum = self.current_spectrum
         for line in [self.spectrum_line, self.binned_spectrum_line]:
             if line is not None:
@@ -246,13 +246,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         while True:
             try:  # Try to get the next feature, otherwise start over
-                next(self._feature_iter)
+                next(self.feature_iter)
                 feat_name, feature = self.current_feature
 
             except StopIteration:
                 self.plot_next_spectrum()
-                self._feature_iter = self._create_feature_iterator()
-                next(self._feature_iter)
+                self.feature_iter = self._create_feature_iterator()
+                next(self.feature_iter)
                 feat_name, feature = self.current_feature
 
             try:  # If the feature is out of range, try the next one
@@ -281,7 +281,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Skip the current spectrum
         """
 
-        self._feature_iter = self._create_feature_iterator()
+        self.feature_iter = self._create_feature_iterator()
         self.plot_next_spectrum()
         self.plot_next_feature()
 
