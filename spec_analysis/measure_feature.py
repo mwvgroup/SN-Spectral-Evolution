@@ -1,8 +1,8 @@
-# !/usr/bin/env python3.7
+# !/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""The ``measure_feature`` module provides functions for calculating the
-properties of spectral features.
+"""The ``measure_feature`` module provides functions for measuring the
+properties of an individual spectral feature.
 """
 
 import numpy as np

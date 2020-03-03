@@ -25,19 +25,4 @@ Usage Example
 
 from . import exceptions
 from . import measure_feature
-from .pyqt_app import GraphicalInspector, Spectrum
-
-
-def run(release):
-    """Run the graphical interface
-
-    args:
-        release (SpectroscopicRelease): A spectroscopic data release
-    """
-
-    from PyQt5 import QtWidgets
-
-    app = QtWidgets.QApplication([])
-    window = GraphicalInspector(release)
-    window.show()
-    app.exec_()
+from .app import run
