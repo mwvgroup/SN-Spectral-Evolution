@@ -12,7 +12,7 @@ import yaml
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication, QFileDialog, QTableWidgetItem
 from sndata.base_classes import SpectroscopicRelease
 
 from .data_classes import Spectrum
@@ -46,8 +46,8 @@ class TableViewer(QtWidgets.QMainWindow):
                 self.tableWidget.setItem(i_row, i_col, newitem)
 
         self.tableWidget.setHorizontalHeaderLabels(headers)
-        #self.tableWidget.resizeColumnsToContents()
-        #self.tableWidget.resizeRowsToContents()
+        # self.tableWidget.resizeColumnsToContents()
+        # self.tableWidget.resizeRowsToContents()
         self.data = data
 
     def save_file(self):
@@ -72,7 +72,6 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi(_gui_layouts_dir / 'mainwindow.ui', self)
 
         # Make sure the passed data release is spectroscopic
-        self.data_release = data_release
         data_type = data_release.data_type
         if data_type != 'spectroscopic':
             raise ValueError(f'Requires spectroscopic data. Passed {data_type}')
@@ -81,17 +80,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_release_label.setText(data_release.release)
 
         # Set defaults
-        default_obj_ids = self.data_release.get_available_ids()
+        default_obj_ids = data_release.get_available_ids()
         self._obj_ids = obj_ids if obj_ids else default_obj_ids
         self.pre_process = pre_process
+
+        # Data release information
+        self.data_release = data_release
+        self._data_iter = self._create_data_iterator()
 
         # Setup tasks
         self._connect_signals()
         self._format_plot_widget()
-        self._data_iter = self._create_data_iterator()
         self.plot_next_spectrum()
 
     def table_viewer(self):
+        """Display a new TableViewer window"""
+
         TableViewer(self, self._current_data).show()
 
     def _create_data_iterator(self):
@@ -99,7 +103,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         total_objects = len(self._obj_ids)
         for i, obj_id in enumerate(self._obj_ids):
-            # Retrieve, format, and partition object data
+            # Retrieve and format object data
             object_data = self.data_release.get_data_for_id(obj_id)
             if self.pre_process:
                 object_data = self.pre_process(object_data)
@@ -167,11 +171,15 @@ class MainWindow(QtWidgets.QMainWindow):
             # self.graph_widget.addItem(new_line)
 
         self.graph_widget.autoRange()
+
+        # Give GUI a chance to catch up or labels may not update correctly
+        QApplication.processEvents()
+
         self.current_object_id_label.setText(spectrum.meta['obj_id'])
         self.current_ra_label.setText(str(spectrum.meta['ra']))
         self.current_dec_label.setText(str(spectrum.meta['dec']))
         self.current_redshift_label.setText(str(spectrum.meta['z']))
-
+        QApplication.processEvents()  # Refresh again just in case
 
 
 def run(release):
@@ -181,9 +189,7 @@ def run(release):
         release (SpectroscopicRelease): A spectroscopic data release
     """
 
-    from PyQt5 import QtWidgets
-
-    app = QtWidgets.QApplication([])
+    app = QApplication([])
     window = MainWindow(release)
     window.show()
     app.exec_()
