@@ -81,7 +81,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Set defaults
         default_obj_ids = data_release.get_available_ids()
-        self.obj_ids = obj_ids if obj_ids else default_obj_ids
+        self.obj_ids = default_obj_ids if obj_ids is None else obj_ids
         self.pre_process = pre_process
 
         # Store arguments
@@ -325,7 +325,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plot_next_feature()
 
 
-def run(release, features=_line_locations, out_path='./test.csv'):
+def run(data_release, features=_line_locations, out_path='./test.csv', obj_ids=None, pre_process=None):
     """Run the graphical interface
 
     args:
@@ -333,6 +333,6 @@ def run(release, features=_line_locations, out_path='./test.csv'):
     """
 
     app = QApplication([])
-    window = MainWindow(release, features, out_path)
+    window = MainWindow(data_release, features, out_path, obj_ids, pre_process)
     window.show()
     app.exec_()

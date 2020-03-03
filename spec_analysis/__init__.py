@@ -12,15 +12,27 @@ Usage Example
 .. code-block:: python
    :linenos:
 
+   from sndata.sdss import Sako18Spec
+
    from spec_analysis import run
-   from sndata.csp import DR3
 
    # Make sure data is downloaded to your local machine
-   dr3 = DR3()
-   dr3.download_module_data()
+   data_release = Sako18Spec()
+   data_release.download_module_data()
+
+   # Here we select object Id's only SNe Ia
+   spec_summary = data_release.load_table(9)
+   obj_ids = spec_summary[spec_summary['Type'] == 'Ia']['CID']
+
+
+   # Function called to process data tables before plotting / analysis
+   def pre_process(table):
+       '''Remove galaxy spectra from data tables'''
+       return table[table['type'] != 'Gal']
+
 
    # Launch the graphical inspector for measuring spectral properties
-   run(dr3)
+   run(data_release, obj_ids=obj_ids, pre_process=pre_process)
 """
 
 from . import exceptions
