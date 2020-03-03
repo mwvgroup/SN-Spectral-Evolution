@@ -3,15 +3,15 @@
 
 """Tests for the ``simulation.spectra`` module."""
 
+import extinction
 from unittest import TestCase
 
-import extinction
 import numpy as np
 from astropy.constants import c
 from uncertainties.unumpy import uarray
 
-from phot_class import spectra
-from phot_class.spectra.exceptions import FeatureOutOfBounds
+from spec_analysis import measure_feature
+from spec_analysis.exceptions import FeatureOutOfBounds
 
 
 class SimulatedSpectrum:
@@ -108,7 +108,7 @@ class Area(TestCase):
         flux, eflux = SimulatedSpectrum.tophat(wave)
 
         expected_area = len(wave) - 200
-        returned_area = spectra.feature_area(wave, flux)
+        returned_area = measure_feature.area(wave, flux)
         self.assertEqual(expected_area, returned_area)
 
     def test_no_feature(self):
@@ -117,14 +117,14 @@ class Area(TestCase):
         """
 
         wave = np.arange(1000, 3000)
-        self.assertEqual(0, spectra.feature_area(wave, wave))
+        self.assertEqual(0, measure_feature.area(wave, wave))
 
     def test_uarray_support(self):
         """Test the function supports input arrays with ufloat objects"""
 
         wave = np.arange(1000, 2000)
         uflux = uarray(*SimulatedSpectrum.gaussian(wave, stddev=100))
-        returned_area = spectra.feature_area(wave, uflux)
+        returned_area = measure_feature.area(wave, uflux)
         self.assertLess(0, returned_area.std_dev)
 
 
@@ -138,7 +138,7 @@ class PEW(TestCase):
         flux, eflux = SimulatedSpectrum.tophat(wave)
 
         expected_area = len(wave) - 200
-        continuum, norm_flux, returned_area = spectra.feature_pew(wave, flux)
+        continuum, norm_flux, returned_area = measure_feature.pew(wave, flux)
 
         self.assertEqual(expected_area, returned_area)
 
@@ -150,7 +150,7 @@ class PEW(TestCase):
         wave = np.arange(1000, 3000)
         flux, eflux = SimulatedSpectrum.tophat(wave, height=None)
 
-        continuum, norm_flux, pew = spectra.feature_pew(wave, flux)
+        continuum, norm_flux, pew = measure_feature.pew(wave, flux)
         self.assertEqual(0, pew)
 
     def test_normalization(self):
@@ -161,7 +161,7 @@ class PEW(TestCase):
         wave = np.arange(1000, 3000)
         flux = 2 * wave
 
-        continuum, norm_flux, pew = spectra.feature_pew(wave, flux)
+        continuum, norm_flux, pew = measure_feature.pew(wave, flux)
         expected_norm_flux = np.ones_like(flux).tolist()
 
         self.assertListEqual(expected_norm_flux, norm_flux.tolist())
@@ -171,7 +171,7 @@ class PEW(TestCase):
 
         wave = np.arange(1000, 2000)
         uflux = uarray(*SimulatedSpectrum.gaussian(wave, stddev=100))
-        continuum, norm_flux, pew = spectra.feature_pew(wave, uflux)
+        continuum, norm_flux, pew = measure_feature.pew(wave, uflux)
         self.assertLess(0, pew.std_dev)
 
 
@@ -192,7 +192,7 @@ class Velocity(TestCase):
                 (lambda_ratio ** 2 - 1) / (lambda_ratio ** 2 + 1)
         )
 
-        v_returned, *_ = spectra.feature_velocity(
+        v_returned, *_ = measure_feature.velocity(
             lambda_rest, wave, flux, unit=c.unit)
 
         self.assertEqual(v_expected, v_returned)
@@ -206,8 +206,8 @@ class Velocity(TestCase):
         flux, eflux = SimulatedSpectrum.gaussian(wave, stddev=100)
         uflux = uarray(flux, eflux)
 
-        velocity_no_err, *_ = spectra.feature_velocity(lambda_rest, wave, flux)
-        velocity_w_err, *_ = spectra.feature_velocity(lambda_rest, wave, uflux)
+        velocity_no_err, *_ = measure_feature.velocity(lambda_rest, wave, flux)
+        velocity_w_err, *_ = measure_feature.velocity(lambda_rest, wave, uflux)
         self.assertAlmostEqual(velocity_no_err, velocity_w_err.nominal_value)
 
 
@@ -226,7 +226,7 @@ class FindPeakWavelength(TestCase):
         """Test the correct peak wavelength is found for a single flux spike"""
 
         expected_peak = self.peak_wavelengths[0]
-        recovered_peak = spectra.find_peak_wavelength(
+        recovered_peak = measure_feature.find_peak_wavelength(
             wave=self.wave,
             flux=self.flux,
             lower_bound=expected_peak - 10,
@@ -240,7 +240,7 @@ class FindPeakWavelength(TestCase):
 
         max_wavelength = max(self.wave)
         with self.assertRaises(FeatureOutOfBounds):
-            spectra.find_peak_wavelength(
+            measure_feature.find_peak_wavelength(
                 wave=self.wave,
                 flux=self.flux,
                 lower_bound=max_wavelength + 10,
@@ -254,7 +254,7 @@ class FindPeakWavelength(TestCase):
 
         lower_peak_wavelength = min(self.peak_wavelengths)
         upper_peak_wavelength = max(self.peak_wavelengths)
-        returned_lower_peak = spectra.find_peak_wavelength(
+        returned_lower_peak = measure_feature.find_peak_wavelength(
             self.wave,
             self.flux,
             lower_peak_wavelength - 10,
@@ -265,7 +265,7 @@ class FindPeakWavelength(TestCase):
         self.assertEqual(
             lower_peak_wavelength, returned_lower_peak, 'Incorrect min peak')
 
-        returned_upper_peak = spectra.find_peak_wavelength(
+        returned_upper_peak = measure_feature.find_peak_wavelength(
             self.wave,
             self.flux,
             lower_peak_wavelength - 10,
@@ -298,7 +298,7 @@ class FindFeatureBounds(TestCase):
             'upper_red': upper_peak_wavelength + 10
         }
 
-        feat_start, feat_end = spectra.guess_feature_bounds(
+        feat_start, feat_end = measure_feature.guess_feature_bounds(
             wave, flux, feature_dict)
 
         self.assertEqual(
@@ -330,7 +330,7 @@ class CorrectExtinction(TestCase):
         rv = 3.1
 
         shifted_wave = self.test_wave * (1 + z)
-        rested_wave, flux = spectra.correct_extinction(
+        rested_wave, flux = measure_feature.correct_extinction(
             shifted_wave, self.test_flux, ra, dec, z=z, rv=rv
         )
         self.assertListEqual(
@@ -353,11 +353,11 @@ class CorrectExtinction(TestCase):
         dec = -29
         rv = 3.1
 
-        mwebv = spectra.dust_map.ebv(ra, dec, frame='fk5j2000', unit='degree')
+        mwebv = measure_feature.dust_map.ebv(ra, dec, frame='fk5j2000', unit='degree')
         ext = extinction.fitzpatrick99(self.test_wave, a_v=rv * mwebv)
         extincted_flux = extinction.apply(ext, self.test_flux)
 
-        wave, flux = spectra.correct_extinction(
+        wave, flux = measure_feature.correct_extinction(
             self.test_wave, extincted_flux, ra, dec, z, rv=rv)
 
         is_close = np.isclose(self.test_flux, flux).all()
@@ -379,7 +379,7 @@ class BinSpectrum(TestCase):
     def test_correct_binned_average(self):
         """Test flux values are correctly averaged in each bin"""
 
-        bins, avgs = spectra.bin_spectrum(self.wave, self.flux)
+        bins, avgs = measure_feature.bin_spectrum(self.wave, self.flux)
         correct_avg = (avgs == 1).all()
         self.assertTrue(correct_avg)
 
@@ -387,7 +387,7 @@ class BinSpectrum(TestCase):
         """Test flux values are correctly summed in each bin"""
 
         bin_size = 5
-        bins, sums = spectra.bin_spectrum(
+        bins, sums = measure_feature.bin_spectrum(
             self.wave, self.flux, bin_size, method='sum')
 
         sums[-1] -= 1  # Because of inclusion of values at the boundary
@@ -399,7 +399,7 @@ class BinSpectrum(TestCase):
 
         err_msg = 'Differing element when calculating {}'
         for method in ('avg', 'sum'):
-            returned, _ = spectra.bin_spectrum(
+            returned, _ = measure_feature.bin_spectrum(
                 self.wave, self.flux, bin_size=.5, method=method)
 
             self.assertListEqual(
@@ -413,7 +413,7 @@ class BinSpectrum(TestCase):
         for method in ('avg', 'sum'):
             expected = np.arange(self.wave[0], self.wave[-1],
                                  bin_size) + bin_size / 2
-            returned, _ = spectra.bin_spectrum(
+            returned, _ = measure_feature.bin_spectrum(
                 self.wave, self.flux, bin_size=bin_size, method=method)
 
             self.assertListEqual(
@@ -423,4 +423,4 @@ class BinSpectrum(TestCase):
         """Test a ValueError error is raised for an unknown binning method"""
 
         kwargs = dict(wave=self.wave, flux=self.flux, method='fake_method')
-        self.assertRaises(ValueError, spectra.bin_spectrum, **kwargs)
+        self.assertRaises(ValueError, measure_feature.bin_spectrum, **kwargs)
