@@ -14,6 +14,8 @@ import pyqtgraph as pg
 import sfdmap
 import yaml
 from PyQt5 import QtWidgets, uic
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 from scipy.ndimage import gaussian_filter
 from sndata.base_classes import SpectroscopicRelease
 from uncertainties import nominal_value, std_dev
@@ -215,7 +217,7 @@ class Spectrum:
 
 class GraphicalInspector(QtWidgets.QMainWindow):
 
-    def __init__(self, data_release, obj_ids=None, process_func=None):
+    def __init__(self, data_release, obj_ids=None, pre_process=None):
         """Visualization tool for measuring spectroscopic features
 
         Args:
@@ -235,7 +237,7 @@ class GraphicalInspector(QtWidgets.QMainWindow):
         # Set defaults
         default_obj_ids = self.data_release.get_available_ids()
         self._obj_ids = obj_ids if obj_ids else default_obj_ids
-        self.process_func = process_func if process_func else lambda x: x
+        self.pre_process = pre_process
 
         # Setup tasks
         self._connect_signals()
@@ -250,9 +252,10 @@ class GraphicalInspector(QtWidgets.QMainWindow):
         for i, obj_id in enumerate(self._obj_ids):
             # Retrieve, format, and partition object data
             object_data = self.data_release.get_data_for_id(obj_id)
-            object_data = self.process_func(object_data)
-            if not object_data:
-                continue
+            if self.pre_process:
+                object_data = self.pre_process(object_data)
+                if not object_data:
+                    continue
 
             # Update the progress bar
             completion = i * 100 / total_objects
@@ -278,10 +281,16 @@ class GraphicalInspector(QtWidgets.QMainWindow):
         self.ignore_button.clicked.connect(self.plot_next_spectrum)
 
         # Connect check boxes with enabling their respective line inputs
+        reg_ex = QRegExp("([0-9]+)(\.)([0-9]+)")
         for i in range(1, 9):
             check_box = getattr(self, f'pw{i}_check_box')
             start_line_edit = getattr(self, f'pw{i}_start_line_edit')
             end_line_edit = getattr(self, f'pw{i}_end_line_edit')
+
+            # Only allow numbers in text boxes
+            input_validator = QRegExpValidator(reg_ex, start_line_edit)
+            start_line_edit.setValidator(input_validator)
+            end_line_edit.setValidator(input_validator)
 
             check_box.stateChanged.connect(start_line_edit.setEnabled)
             check_box.stateChanged.connect(end_line_edit.setEnabled)
