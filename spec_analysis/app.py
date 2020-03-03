@@ -77,6 +77,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if data_type != 'spectroscopic':
             raise ValueError(f'Requires spectroscopic data. Passed {data_type}')
 
+        self.current_survey_label.setText(data_release.survey_abbrev)
+        self.current_release_label.setText(data_release.release)
+
         # Set defaults
         default_obj_ids = self.data_release.get_available_ids()
         self._obj_ids = obj_ids if obj_ids else default_obj_ids
@@ -87,7 +90,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self._format_plot_widget()
         self._data_iter = self._create_data_iterator()
         self.plot_next_spectrum()
-        self.actionView_data.triggered.connect(self.table_viewer)
 
     def table_viewer(self):
         TableViewer(self, self._current_data).show()
@@ -128,20 +130,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.skip_button.clicked.connect(self.plot_next_spectrum)
         self.ignore_button.clicked.connect(self.plot_next_spectrum)
 
-        # Connect check boxes with enabling their respective line inputs
+        # Only allow numbers in text boxes
         reg_ex = QRegExp("([0-9]+)(\.)([0-9]+)")
-        for i in range(1, 9):
-            check_box = getattr(self, f'pw{i}_check_box')
-            start_line_edit = getattr(self, f'pw{i}_start_line_edit')
-            end_line_edit = getattr(self, f'pw{i}_end_line_edit')
+        input_validator = QRegExpValidator(reg_ex, self.feature_start_le)
+        self.feature_start_le.setValidator(input_validator)
+        self.feature_end_le.setValidator(input_validator)
 
-            # Only allow numbers in text boxes
-            input_validator = QRegExpValidator(reg_ex, start_line_edit)
-            start_line_edit.setValidator(input_validator)
-            end_line_edit.setValidator(input_validator)
-
-            check_box.stateChanged.connect(start_line_edit.setEnabled)
-            check_box.stateChanged.connect(end_line_edit.setEnabled)
+        # Menu bar
+        self.actionView_data.triggered.connect(self.table_viewer)
 
     def _format_plot_widget(self):
         """Format the plotting widget"""
@@ -155,11 +151,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Plot the next spectrum from the data release"""
 
         spectrum = next(self._data_iter)
-
-        # Format the plotting widget
-        title = f'Object Id: {spectrum.meta["obj_id"]}'
         self.graph_widget.clear()
-        self.graph_widget.setTitle(title)
 
         # plot binned and rest framed spectrum
         spectrum_style = {'color': 'k'}
@@ -175,6 +167,11 @@ class MainWindow(QtWidgets.QMainWindow):
             # self.graph_widget.addItem(new_line)
 
         self.graph_widget.autoRange()
+        self.current_object_id_label.setText(spectrum.meta['obj_id'])
+        self.current_ra_label.setText(str(spectrum.meta['ra']))
+        self.current_dec_label.setText(str(spectrum.meta['dec']))
+        self.current_redshift_label.setText(str(spectrum.meta['z']))
+
 
 
 def run(release):
