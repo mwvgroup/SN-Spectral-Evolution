@@ -23,6 +23,9 @@ _line_locations_path = _file_dir / 'features.yml'
 with open(_line_locations_path) as infile:
     _line_locations = yaml.load(infile, Loader=yaml.FullLoader)
 
+# Enable antialiasing for prettier plots
+pg.setConfigOptions(antialias=True)
+
 
 class TableViewer(QtWidgets.QMainWindow):
     """Simple interface for astropy tables"""
@@ -34,6 +37,7 @@ class TableViewer(QtWidgets.QMainWindow):
             data (Table): An astropy table
         """
 
+        # noinspection PyArgumentList
         super(TableViewer, self).__init__(parent)
         uic.loadUi(_gui_layouts_dir / 'tableviewer.ui', self)
 
@@ -42,8 +46,8 @@ class TableViewer(QtWidgets.QMainWindow):
         for i_col, column_name in enumerate(data.colnames):
             headers.append(column_name)
             for i_row, item in enumerate(data[column_name]):
-                newitem = QTableWidgetItem(item)
-                self.tableWidget.setItem(i_row, i_col, newitem)
+                new_item = QTableWidgetItem(item)
+                self.tableWidget.setItem(i_row, i_col, new_item)
 
         self.tableWidget.setHorizontalHeaderLabels(headers)
         # self.tableWidget.resizeColumnsToContents()
@@ -60,14 +64,19 @@ class TableViewer(QtWidgets.QMainWindow):
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """The main window for visualizing and measuring spectra"""
 
-    def __init__(self, data_release, obj_ids=None, pre_process=None):
+    def __init__(self, data_release, features, obj_ids=None, pre_process=None):
         """Visualization tool for measuring spectroscopic features
 
         Args:
             data_release (SpectroscopicRelease): An sndata style data release
+            features        (dict): Feature definitions
+            obj_ids         (list): Optionally only consider a subset of Id's
+            pre_process (Callable): Function to prepare data before plotting
         """
 
+        # noinspection PyArgumentList
         super().__init__()
         uic.loadUi(_gui_layouts_dir / 'mainwindow.ui', self)
 
@@ -86,12 +95,37 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Data release information
         self.data_release = data_release
-        self._data_iter = self._create_data_iterator()
+        self.features = features
 
         # Setup tasks
+        self._data_iter = self._create_data_iterator()
+        self._init_plot_widget()  # Defines a few new attributes and signals
         self._connect_signals()
-        self._format_plot_widget()
         self.plot_next_spectrum()
+
+    def _init_plot_widget(self):
+        """Format the plotting widget"""
+
+        self.graph_widget.setBackground('w')
+        self.graph_widget.setLabel('left', 'Flux', color='k', size=25)
+        self.graph_widget.setLabel('bottom', 'Wavelength', color='k', size=25)
+        self.graph_widget.showGrid(x=True, y=True)
+
+        # Create lines marking feature locations
+        line_style = {'width': 2, 'color': 'r'}
+        self.lower_bound_line = pg.InfiniteLine([3650, 0], pen=line_style, movable=True)
+        self.upper_bound_line = pg.InfiniteLine([4000, 0], pen=line_style, movable=True)
+        self.graph_widget.addItem(self.lower_bound_line)
+        self.graph_widget.addItem(self.upper_bound_line)
+        self.update_feature_bounds_le()
+
+        self.lower_bound_region = pg.LinearRegionItem(values=[3500, 3800], movable=False)
+        self.upper_bound_region = pg.LinearRegionItem(values=[3900, 4100], movable=False)
+        self.graph_widget.addItem(self.lower_bound_region)
+        self.graph_widget.addItem(self.upper_bound_region)
+
+        self.spectrum_line = None
+        self.binned_spectrum_line = None
 
     def _create_data_iterator(self):
         """Return an iterator over individual spectra in ``self.data_release``"""
@@ -128,55 +162,70 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ignore_button.clicked.connect(self.plot_next_spectrum)
 
         # Only allow numbers in text boxes
-        reg_ex = QRegExp("([0-9]+)(\.)([0-9]+)")
-        input_validator = QRegExpValidator(reg_ex, self.feature_start_le)
+        reg_ex = QRegExp(r"([0-9]+)|([0-9]+\.)|([0-9]+\.[0-9]+)")
+        input_validator = QRegExpValidator(reg_ex)
         self.feature_start_le.setValidator(input_validator)
         self.feature_end_le.setValidator(input_validator)
+
+        self.lower_bound_line.sigPositionChangeFinished.connect(self.update_feature_bounds_le)
+        self.upper_bound_line.sigPositionChangeFinished.connect(self.update_feature_bounds_le)
+        self.feature_start_le.editingFinished.connect(self.update_feature_bounds_plot)
+        self.feature_end_le.editingFinished.connect(self.update_feature_bounds_plot)
 
         # Todo:
         # Menu bar
         # self.actionView_data.triggered.connect(self.table_viewer)
 
-    def _format_plot_widget(self):
-        """Format the plotting widget"""
+    def update_feature_bounds_le(self, *args):
+        """Update the location of plotted feature bounds to match line edits"""
 
-        self.graph_widget.setBackground('w')
-        self.graph_widget.setLabel('left', 'Flux', color='k', size=25)
-        self.graph_widget.setLabel('bottom', 'Wavelength', color='k', size=25)
-        self.graph_widget.showGrid(x=True, y=True)
+        lower_bound = self.lower_bound_line.value()
+        self.feature_start_le.setText(str(lower_bound))
+
+        upper_bound = self.upper_bound_line.value()
+        self.feature_end_le.setText(str(upper_bound))
+
+    def update_feature_bounds_plot(self, *args):
+        """Update line edits to match the location of plotted feature bounds"""
+
+        lower_bound = self.feature_start_le.text()
+        self.lower_bound_line.setValue(float(lower_bound))
+
+        upper_bound = self.feature_end_le.text()
+        self.upper_bound_line.setValue(float(upper_bound))
 
     def plot_next_spectrum(self):
         """Plot the next spectrum from the data release"""
 
+        # Clear the plot of the previous spectrum
         spectrum = next(self._data_iter)
-        self.graph_widget.clear()
+        for line in [self.spectrum_line, self.binned_spectrum_line]:
+            if line is not None:
+                line.clear()
 
         # plot binned and rest framed spectrum
         spectrum_style = {'color': 'k'}
         binned_style = {'color': 'b'}
-        self.graph_widget.plot(spectrum.rest_wave, spectrum.rest_flux, pen=spectrum_style)
-        self.graph_widget.plot(spectrum.bin_wave, spectrum.bin_flux, pen=binned_style)
-
-        # Plot boundaries of features
-        feature_locations = [4000, ]
-        feature_line_style = {'width': 5, 'color': 'r'}
-        for x_val in feature_locations:
-            new_line = pg.InfiniteLine([x_val, 0], pen=feature_line_style)
-            # self.graph_widget.addItem(new_line)
-
+        self.spectrum_line = self.graph_widget.plot(spectrum.rest_wave, spectrum.rest_flux, pen=spectrum_style)
+        self.binned_spectrum_line = self.graph_widget.plot(spectrum.bin_wave, spectrum.bin_flux, pen=binned_style)
         self.graph_widget.autoRange()
 
         # Give GUI a chance to catch up or labels may not update correctly
+        # This bug is mostly seen on MAC OS
+        # noinspection PyArgumentList
         QApplication.processEvents()
 
         self.current_object_id_label.setText(spectrum.meta['obj_id'])
         self.current_ra_label.setText(str(spectrum.meta['ra']))
         self.current_dec_label.setText(str(spectrum.meta['dec']))
         self.current_redshift_label.setText(str(spectrum.meta['z']))
-        QApplication.processEvents()  # Refresh again just in case
+
+        # Refresh again just in case
+        # noinspection PyArgumentList
+        QApplication.processEvents()
 
 
-def run(release):
+def run(release, features=_line_locations):
     """Run the graphical interface
 
     args:
@@ -184,6 +233,6 @@ def run(release):
     """
 
     app = QApplication([])
-    window = MainWindow(release)
+    window = MainWindow(release, features)
     window.show()
     app.exec_()
