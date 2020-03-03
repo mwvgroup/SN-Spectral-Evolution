@@ -93,11 +93,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self._format_plot_widget()
         self.plot_next_spectrum()
 
-    def table_viewer(self):
-        """Display a new TableViewer window"""
-
-        TableViewer(self, self._current_data).show()
-
     def _create_data_iterator(self):
         """Return an iterator over individual spectra in ``self.data_release``"""
 
@@ -117,7 +112,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Yield individual spectra for the object
             for spectrum_data in object_data.group_by('time').groups:
-                self._current_data = spectrum_data
                 spectrum = Spectrum(
                     spectrum_data['wavelength'],
                     spectrum_data['flux'],
@@ -140,8 +134,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.feature_start_le.setValidator(input_validator)
         self.feature_end_le.setValidator(input_validator)
 
+        # Todo:
         # Menu bar
-        self.actionView_data.triggered.connect(self.table_viewer)
+        # self.actionView_data.triggered.connect(self.table_viewer)
 
     def _format_plot_widget(self):
         """Format the plotting widget"""
