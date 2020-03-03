@@ -185,8 +185,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.feature_start_le.editingFinished.connect(self.update_feature_bounds_plot)
         self.feature_end_le.editingFinished.connect(self.update_feature_bounds_plot)
 
-        # Todo:
-        # Menu bar
+        # Todo: add menu bar with child windows
         # self.actionView_data.triggered.connect(self.table_viewer)
 
     def update_feature_bounds_le(self, *args):
