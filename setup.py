@@ -9,5 +9,5 @@ setup(name='spec_analysis',
       python_requires='>=3.8',
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],
-      package_data={'': ['*.npy', '*.yml']},
+      package_data={'': ['*.ui', '*.fits']},
       include_pacakge_data=True)
