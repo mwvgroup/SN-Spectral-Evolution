@@ -53,6 +53,7 @@ def _create_output_table(*args, **kwargs):
     return Table(names=col_names, dtype=dtype, *args, **kwargs)
 
 
+# Todo: add label to show previous feature bounds
 class MainWindow(QtWidgets.QMainWindow):
     """The main window for visualizing and measuring spectra"""
 
@@ -128,6 +129,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.spectrum_line, self.binned_spectrum_line = None, None
 
+    # Todo: Skip tabulated features / spectra
     def _create_data_iterator(self):
         """Return an iterator over individual spectra in ``self.data_release``"""
 
@@ -206,6 +208,7 @@ class MainWindow(QtWidgets.QMainWindow):
         upper_bound = self.feature_end_le.text()
         self.upper_bound_line.setValue(float(upper_bound))
 
+    # Todo: Make plot look nicer
     def plot_next_spectrum(self):
         """Plot the next spectrum from the data release"""
 
@@ -272,6 +275,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.upper_bound_line.setValue(upper_bound)
             self.lower_bound_region.setRegion(lower_range)
             self.upper_bound_region.setRegion(upper_range)
+            self.update_feature_bounds_le()
 
             break
 
