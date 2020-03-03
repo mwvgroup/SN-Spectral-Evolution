@@ -161,8 +161,8 @@ class Spectrum:
         self._correct_extinction(rv=rv)
         self._bin_spectrum(bin_size=bin_size, method=method)
 
-    def _sample_feature_properties(
-            self, feat_start, feat_end, rest_frame, nstep=5, return_samples=False):
+    def sample_feature_properties(
+            self, feat_start, feat_end, rest_frame, nstep=5, yield_samples=False):
         """Calculate the properties of a single feature in a spectrum
 
         Velocity values are returned in km / s. Error values are determined
@@ -174,12 +174,18 @@ class Spectrum:
             feat_end       (float): Ending wavelength of the feature
             rest_frame     (float): Rest frame location of the specified feature
             nstep            (int): Number of samples taken in each direction
-            return_samples  (bool): Return samples instead of averaged values
+            yield_samples   (bool): Yield samples instead of returning averaged values
 
         Returns:
-            - (The line velocity, its formal error, and its sampling error)
-            - (The equivalent width, its formal error, and its sampling error)
-            - (The feature area, its formal error, and its sampling error)
+            - The line velocity
+            - The formal error in velocity
+            - The sampling error in velocity
+            - The equivalent width
+            - The formal error in equivalent width
+            - The sampling error in equivalent width
+            - The feature area
+            - The formal error in area
+            - The sampling error in area
         """
 
         # Get indices for beginning and end of the feature
@@ -207,27 +213,18 @@ class Spectrum:
                 vel, avg, fit = measure_feature.velocity(rest_frame, nw, norm_flux)
                 velocity.append(vel)
 
-        if return_samples:
-            return velocity, pequiv_width, area
-
         avg_velocity = np.mean(velocity)
         avg_ew = np.mean(pequiv_width)
         avg_area = np.mean(area)
 
-        return (
-            (
-                nominal_value(avg_velocity),
-                std_dev(avg_velocity),
-                np.std(nominal_values(avg_velocity))
-            ),
-            (
-                nominal_value(avg_ew),
-                std_dev(avg_ew),
-                np.std(nominal_values(pequiv_width))
-            ),
-            (
-                nominal_value(avg_area),
-                std_dev(avg_area),
-                np.std(nominal_values(area))
-            )
-        )
+        return [
+            nominal_value(avg_velocity),
+            std_dev(avg_velocity),
+            np.std(nominal_values(avg_velocity)),
+            nominal_value(avg_ew),
+            std_dev(avg_ew),
+            np.std(nominal_values(pequiv_width)),
+            nominal_value(avg_area),
+            std_dev(avg_area),
+            np.std(nominal_values(area))
+        ]

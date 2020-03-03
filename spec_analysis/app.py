@@ -7,12 +7,14 @@ interface.
 
 from pathlib import Path
 
+import numpy as np
 import pyqtgraph as pg
 import yaml
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QApplication, QFileDialog, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication
+from astropy.table import Table, MaskedColumn
 from sndata.base_classes import SpectroscopicRelease
 
 from . import measure_feature
@@ -29,46 +31,32 @@ with open(_line_locations_path) as infile:
 pg.setConfigOptions(antialias=True)
 
 
-class TableViewer(QtWidgets.QMainWindow):
-    """Simple interface for astropy tables"""
+def _create_output_table(*args, **kwargs):
+    """Create an empty astropy table for storing spectra results
+    Args:
+        Any arguments for instantiating ``Table`` except ``names`` or ``dtype``
+    Returns:
+        An empty astropy Table
+    """
 
-    def __init__(self, parent, data):
-        """Display data from an astropy table
+    col_names = ['obj_id', 'time', 'feat_name', 'feat_start', 'feat_end']
+    dtype = ['U100', float, 'U100', float, float]
+    for value in ('vel', 'pew', 'area'):
+        col_names.append(value)
+        col_names.append(value + '_err')
+        col_names.append(value + '_samperr')
+        dtype += [float, float, float]
 
-        Args:
-            data (Table): An astropy table
-        """
+    col_names.append('msg')
+    dtype.append(object)  # object dtype has no character length for strings
 
-        # noinspection PyArgumentList
-        super(TableViewer, self).__init__(parent)
-        uic.loadUi(_gui_layouts_dir / 'tableviewer.ui', self)
-
-        # populate table
-        headers = []
-        for i_col, column_name in enumerate(data.colnames):
-            headers.append(column_name)
-            for i_row, item in enumerate(data[column_name]):
-                new_item = QTableWidgetItem(item)
-                self.tableWidget.setItem(i_row, i_col, new_item)
-
-        self.tableWidget.setHorizontalHeaderLabels(headers)
-        # self.tableWidget.resizeColumnsToContents()
-        # self.tableWidget.resizeRowsToContents()
-        self.data = data
-
-    def save_file(self):
-        """Save the displayed data to file"""
-
-        file_path, _ = QFileDialog.getSaveFileName(self)
-        file_path = Path(file_path).with_suffix('.csv')
-        if file_path:
-            self.data.write(file_path)
+    return Table(names=col_names, dtype=dtype, *args, **kwargs)
 
 
 class MainWindow(QtWidgets.QMainWindow):
     """The main window for visualizing and measuring spectra"""
 
-    def __init__(self, data_release, features, obj_ids=None, pre_process=None):
+    def __init__(self, data_release, features, out_path, obj_ids=None, pre_process=None):
         """Visualization tool for measuring spectroscopic features
 
         Args:
@@ -92,16 +80,26 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Set defaults
         default_obj_ids = data_release.get_available_ids()
-        self._obj_ids = obj_ids if obj_ids else default_obj_ids
+        self.obj_ids = obj_ids if obj_ids else default_obj_ids
         self.pre_process = pre_process
 
-        # Store feature and release data
+        # Store arguments
+        self.out_path = Path(out_path).with_suffix('.csv')
         self.data_release = data_release
         self.features = features
-        self._data_iter = self._create_data_iterator()
-        self._feature_iter = iter(())
+
+        # Read existing results
+        if self.out_path.exists():
+            self.tabulated_results = Table.read(self.out_path)
+            formatted_column = MaskedColumn(self.tabulated_results['msg'], dtype=object)
+            self.tabulated_results['msg'] = formatted_column
+
+        else:
+            self.tabulated_results = _create_output_table()
 
         # Setup tasks
+        self._data_iter = self._create_data_iterator()
+        self._feature_iter = self._create_feature_iterator()
         self._init_plot_widget()  # Defines a few new attributes and signals
         self.plot_next_spectrum()  # Sets values for some of those attributes
         self.plot_next_feature()
@@ -133,8 +131,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def _create_data_iterator(self):
         """Return an iterator over individual spectra in ``self.data_release``"""
 
-        total_objects = len(self._obj_ids)
-        for i, obj_id in enumerate(self._obj_ids):
+        total_objects = len(self.obj_ids)
+        for i, obj_id in enumerate(self.obj_ids):
             # Retrieve and format object data
             object_data = self.data_release.get_data_for_id(obj_id)
             if self.pre_process:
@@ -155,15 +153,25 @@ class MainWindow(QtWidgets.QMainWindow):
                     spectrum_data.meta)
 
                 spectrum.prepare_spectrum()
-                self.spectrum = spectrum
+                self.current_spectrum = spectrum
                 yield
+
+                # Save any results from the previous spectrum
+                self.tabulated_results.write(self.out_path, overwrite=True)
+
+    def _create_feature_iterator(self):
+        """Return an iterator over individual spectra in ``self.data_release``"""
+
+        for feat_name, feature in self.features.items():
+            self.current_feature = (feat_name, feature)
+            yield
 
     def _connect_signals(self):
         """Connect signals / slots of GUI widgets"""
 
-        self.save_button.clicked.connect(self.plot_next_feature)
+        self.save_button.clicked.connect(self.save)
         self.skip_button.clicked.connect(self.plot_next_feature)
-        self.ignore_button.clicked.connect(self.plot_next_feature)
+        self.ignore_button.clicked.connect(self.ignore)
 
         # Only allow numbers in text boxes
         reg_ex = QRegExp(r"([0-9]+)|([0-9]+\.)|([0-9]+\.[0-9]+)")
@@ -203,7 +211,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Clear the plot of the previous spectrum
         next(self._data_iter)
-        spectrum = self.spectrum
+        spectrum = self.current_spectrum
         for line in [self.spectrum_line, self.binned_spectrum_line]:
             if line is not None:
                 line.clear()
@@ -238,16 +246,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         while True:
             try:  # Try to get the next feature, otherwise start over
-                feat_name, feature = next(self._feature_iter)
+                next(self._feature_iter)
+                feat_name, feature = self.current_feature
 
             except StopIteration:
                 self.plot_next_spectrum()
-                self._feature_iter = iter(self.features.items())
-                feat_name, feature = next(self._feature_iter)
+                self._feature_iter = self._create_feature_iterator()
+                next(self._feature_iter)
+                feat_name, feature = self.current_feature
 
             try:  # If the feature is out of range, try the next one
                 lower_bound, upper_bound = measure_feature.guess_feature_bounds(
-                    self.spectrum.wave, self.spectrum.flux, feature
+                    self.current_spectrum.bin_wave, self.current_spectrum.bin_flux, feature
                 )
 
             except FeatureOutOfBounds:
@@ -265,8 +275,53 @@ class MainWindow(QtWidgets.QMainWindow):
 
             break
 
+    def ignore(self):
+        """Logic for the ignore button
 
-def run(release, features=_line_locations):
+        Skip the current spectrum
+        """
+
+        self._feature_iter = self._create_feature_iterator()
+        self.plot_next_spectrum()
+        self.plot_next_feature()
+
+    def save(self):
+        """Logic for the save button
+
+        Measure the current spectral feature and save results
+        """
+
+        lower_bound_loc = self.lower_bound_line.value()
+        upper_bound_loc = self.upper_bound_line.value()
+
+        wave = self.current_spectrum.bin_wave
+        lower_bound = wave[(np.abs(wave - lower_bound_loc)).argmin()]
+        upper_bound = wave[(np.abs(wave - upper_bound_loc)).argmin()]
+
+        try:
+            out = self.current_spectrum.sample_feature_properties(
+                feat_start=lower_bound,
+                feat_end=upper_bound,
+                rest_frame=self.current_feature[1]['restframe'],
+                nstep=0
+            )
+
+        # Todo: mask values instead of raising an error
+        except (ValueError, RuntimeError) as e:
+            print(e)
+            self.plot_next_feature()
+            return
+
+        obj_id = self.current_spectrum.meta['obj_id']
+        feat_name = self.current_feature[0]
+        new_row = [obj_id, 0, feat_name, lower_bound, upper_bound]
+        new_row.extend(out)
+        new_row.append(self.notes_text_edit.toPlainText())
+        self.tabulated_results.add_row(new_row)
+        self.plot_next_feature()
+
+
+def run(release, features=_line_locations, out_path='./test.csv'):
     """Run the graphical interface
 
     args:
@@ -274,6 +329,6 @@ def run(release, features=_line_locations):
     """
 
     app = QApplication([])
-    window = MainWindow(release, features)
+    window = MainWindow(release, features, out_path)
     window.show()
     app.exec_()
