@@ -15,7 +15,9 @@ from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QApplication, QFileDialog, QTableWidgetItem
 from sndata.base_classes import SpectroscopicRelease
 
+from . import measure_feature
 from .data_classes import Spectrum
+from .exceptions import FeatureOutOfBounds
 
 _file_dir = Path(__file__).resolve().parent
 _gui_layouts_dir = _file_dir / 'gui_layouts'
@@ -93,15 +95,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self._obj_ids = obj_ids if obj_ids else default_obj_ids
         self.pre_process = pre_process
 
-        # Data release information
+        # Store feature and release data
         self.data_release = data_release
         self.features = features
+        self._data_iter = self._create_data_iterator()
+        self._feature_iter = iter(())
 
         # Setup tasks
-        self._data_iter = self._create_data_iterator()
         self._init_plot_widget()  # Defines a few new attributes and signals
+        self.plot_next_spectrum()  # Sets values for some of those attributes
+        self.plot_next_feature()
         self._connect_signals()
-        self.plot_next_spectrum()
 
     def _init_plot_widget(self):
         """Format the plotting widget"""
@@ -124,8 +128,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.graph_widget.addItem(self.lower_bound_region)
         self.graph_widget.addItem(self.upper_bound_region)
 
-        self.spectrum_line = None
-        self.binned_spectrum_line = None
+        self.spectrum_line, self.binned_spectrum_line = None, None
 
     def _create_data_iterator(self):
         """Return an iterator over individual spectra in ``self.data_release``"""
@@ -152,14 +155,15 @@ class MainWindow(QtWidgets.QMainWindow):
                     spectrum_data.meta)
 
                 spectrum.prepare_spectrum()
-                yield spectrum
+                self.spectrum = spectrum
+                yield
 
     def _connect_signals(self):
         """Connect signals / slots of GUI widgets"""
 
-        self.save_button.clicked.connect(self.plot_next_spectrum)
-        self.skip_button.clicked.connect(self.plot_next_spectrum)
-        self.ignore_button.clicked.connect(self.plot_next_spectrum)
+        self.save_button.clicked.connect(self.plot_next_feature)
+        self.skip_button.clicked.connect(self.plot_next_feature)
+        self.ignore_button.clicked.connect(self.plot_next_feature)
 
         # Only allow numbers in text boxes
         reg_ex = QRegExp(r"([0-9]+)|([0-9]+\.)|([0-9]+\.[0-9]+)")
@@ -198,7 +202,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """Plot the next spectrum from the data release"""
 
         # Clear the plot of the previous spectrum
-        spectrum = next(self._data_iter)
+        next(self._data_iter)
+        spectrum = self.spectrum
         for line in [self.spectrum_line, self.binned_spectrum_line]:
             if line is not None:
                 line.clear()
@@ -223,6 +228,42 @@ class MainWindow(QtWidgets.QMainWindow):
         # Refresh again just in case
         # noinspection PyArgumentList
         QApplication.processEvents()
+
+    def plot_next_feature(self):
+        """Highlight the next feature on the plot
+
+        If the last feature is currently highlighted, plot the next spectrum
+        and start from the beginning of the feature list.
+        """
+
+        while True:
+            try:  # Try to get the next feature, otherwise start over
+                feat_name, feature = next(self._feature_iter)
+
+            except StopIteration:
+                self.plot_next_spectrum()
+                self._feature_iter = iter(self.features.items())
+                feat_name, feature = next(self._feature_iter)
+
+            try:  # If the feature is out of range, try the next one
+                lower_bound, upper_bound = measure_feature.guess_feature_bounds(
+                    self.spectrum.wave, self.spectrum.flux, feature
+                )
+
+            except FeatureOutOfBounds:
+                continue
+
+            lower_range = [feature['lower_blue'], feature['upper_blue']]
+            upper_range = [feature['lower_red'], feature['upper_red']]
+            self.current_feature_label.setText(feat_name)
+
+            # Move lines marking feature locations
+            self.lower_bound_line.setValue(lower_bound)
+            self.upper_bound_line.setValue(upper_bound)
+            self.lower_bound_region.setRegion(lower_range)
+            self.upper_bound_region.setRegion(upper_range)
+
+            break
 
 
 def run(release, features=_line_locations):
