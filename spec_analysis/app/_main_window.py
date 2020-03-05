@@ -86,11 +86,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.connect_signals()
 
         # Plot the first spectrum / feature combination for user inspection
-        self.current_spectrum, self.current_feature = None, None
-        self.plot_next_inspection()
+        self.current_spectrum = None
+        self.iterate_to_next_inspection()
 
     def _init_plot_widget(self):
-        """Format the plotting widget"""
+        """Format the plotting widget and plot dummy objects
+
+        Defines the attributes:
+          - lower_bound_line
+          - upper_bound_line
+          - lower_bound_region
+          - upper_bound_region
+          - spectrum_line
+        """
 
         self.graph_widget.setBackground('w')
         self.graph_widget.setLabel('left', 'Flux', color='k', size=25)
@@ -120,7 +128,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Connect the main submission buttons
         self.save_button.clicked.connect(self.save)
-        self.skip_button.clicked.connect(self.plot_next_inspection)
+        self.skip_button.clicked.connect(self.iterate_to_next_inspection)
         self.skip_all_button.clicked.connect(self.skip_all)
 
         # Only allow numbers in text boxes
@@ -139,7 +147,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.actionView_data.triggered.connect(self.table_viewer)
 
     def refresh_plot(self):
-        """Plot the next spectrum from the data release"""
+        """Refresh the plot to reflect the current spectrum and feature"""
 
         # Plot the binned and rest framed spectrum
         spectrum = self.current_spectrum
@@ -149,18 +157,24 @@ class MainWindow(QtWidgets.QMainWindow):
             spectrum.bin_flux,
             pen={'color': 'k'})
 
+        # Guess start and end locations of the feature
+        lower_bound, upper_bound = measure_feature.guess_feature_bounds(
+            self.current_spectrum.bin_wave,
+            self.current_spectrum.bin_flux,
+            self.current_feature[1]
+        )
+
+        # Move lines marking feature locations
         feat_name, feat_data = self.current_feature
         lower_range = [feat_data['lower_blue'], feat_data['upper_blue']]
         upper_range = [feat_data['lower_red'], feat_data['upper_red']]
-
-        # Move lines marking feature locations
-        self._refresh_spectrum_plot()
         self.lower_bound_line.setValue(lower_bound)
         self.upper_bound_line.setValue(upper_bound)
         self.lower_bound_region.setRegion(lower_range)
         self.upper_bound_region.setRegion(upper_range)
         self.update_feature_bounds_le()
 
+        # Update appropriate GUI labels
         QApplication.processEvents()
         self.current_object_id_label.setText(spectrum.meta['obj_id'])
         self.current_ra_label.setText(str(spectrum.meta['ra']))
@@ -170,10 +184,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.graph_widget.autoRange()
 
-    def iterate_to_next_spectral_feature(self):
+    # todo: skip over tabulated results by adding self._iterate_to_next_spectrum
+    def iterate_to_next_inspection(self):
+        """Update the plot to depict the next feature
+
+        If the last (i.e., reddest) feature is currently being plotted, move
+        to the next spectrum and plot the first feature. If a feature does not
+        overlap the observed wavelength range, move to the next feature.
+        """
 
         if self.current_spectrum is None:
-            self.current_feature = next(self.spectra_iter)
+            self.current_spectrum = next(self.spectra_iter)
 
         while True:
 
@@ -184,8 +205,6 @@ class MainWindow(QtWidgets.QMainWindow):
             # On the last feature, move to the next spectrum and start over
             except StopIteration:
                 self.current_spectrum = next(self.spectra_iter)
-                self._refresh_spectrum_plot()
-
                 self.feature_iter = iter(self.features.items())
                 self.current_feature = next(self.feature_iter)
 
@@ -193,13 +212,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 measure_feature.guess_feature_bounds(
                     self.current_spectrum.bin_wave,
                     self.current_spectrum.bin_flux,
-                    self.current_feature
+                    self.current_feature[1]
                 )
 
             except FeatureOutOfBounds:
                 continue
 
-            return
+            break
+
+        self.refresh_plot()
 
     def update_feature_bounds_le(self, *args):
         """Update the location of plotted feature bounds to match line edits"""
@@ -213,30 +234,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lower_bound_line.setValue(float(self.feature_start_le.text()))
         self.upper_bound_line.setValue(float(self.feature_end_le.text()))
 
-    def plot_next_inspection(self):
-        """Highlight the next feature on the plot
-
-        If the last feature is currently highlighted, plot the next spectrum
-        and start from the beginning of the feature list.
-        """
-
-        self.iterate_to_next_spectral_feature()
-        self.refresh_plot()
-
     def skip_all(self):
-        """Logic for the skip_all button
-
-        Skip the current spectrum
-        """
+        """Skip all features for the current spectrum"""
 
         self.feature_iter = iter(())
-        self.plot_next_inspection()
+        self.iterate_to_next_inspection()
 
+    # Todo: add option to plot intermediate results
     def save(self):
-        """Logic for the save button
-
-        Measure the current spectral feature and save results
-        """
+        """Measure the current spectral feature and save results"""
 
         lower_bound_loc = self.lower_bound_line.value()
         upper_bound_loc = self.upper_bound_line.value()
