@@ -169,13 +169,6 @@
           <property name="formAlignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="feature_label">
-            <property name="text">
-             <string>Current Feature:</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QLabel" name="current_feature_label">
             <property name="text">
@@ -183,18 +176,18 @@
             </property>
            </widget>
           </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="feature_range_label">
+          <item row="0" column="0">
+           <widget class="QLabel" name="feature_label">
             <property name="text">
-             <string>Feature Range:</string>
+             <string>Current Feature:</string>
             </property>
            </widget>
           </item>
-          <item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="1" column="1">
            <widget class="QLineEdit" name="feature_start_le">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -219,7 +212,14 @@
             </property>
            </widget>
           </item>
-          <item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="feature_range_label">
+            <property name="text">
+             <string>Feature Range:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
            <widget class="QLineEdit" name="feature_end_le">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -238,6 +238,27 @@
             </property>
             <property name="maxLength">
              <number>8</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="last_feature_label">
+            <property name="text">
+             <string>Last Feature:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="last_feature_start_label">
+            <property name="text">
+             <string>None</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="last_feature_end_label">
+            <property name="text">
+             <string>None</string>
             </property>
            </widget>
           </item>
@@ -284,9 +305,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="ignore_button">
+           <widget class="QPushButton" name="skip_all_button">
             <property name="text">
-             <string>Ignore</string>
+             <string>Skip All</string>
             </property>
            </widget>
           </item>
@@ -357,7 +378,7 @@
  <tabstops>
   <tabstop>save_button</tabstop>
   <tabstop>skip_button</tabstop>
-  <tabstop>ignore_button</tabstop>
+  <tabstop>skip_all_button</tabstop>
  </tabstops>
  <resources/>
  <connections/>

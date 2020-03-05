@@ -28,11 +28,12 @@ Documentation
 -------------
 """
 
+import extinction
 from pathlib import Path
 
-import extinction
 import numpy as np
 import sfdmap
+from PyQt5.QtCore import pyqtSignal
 from scipy.ndimage import gaussian_filter
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
@@ -185,7 +186,7 @@ class Spectrum:
         self._bin_spectrum(bin_size=bin_size, method=method)
 
     def sample_feature_properties(
-            self, feat_start, feat_end, rest_frame, nstep=5, yield_samples=False):
+            self, feat_start, feat_end, rest_frame, nstep=5):
         """Calculate the properties of a single feature in a spectrum
 
         Velocity values are returned in km / s. Error values are determined
@@ -197,7 +198,6 @@ class Spectrum:
             feat_end       (float): Ending wavelength of the feature
             rest_frame     (float): Rest frame location of the specified feature
             nstep            (int): Number of samples taken in each direction
-            yield_samples   (bool): Yield samples instead of returning averaged values
 
         Returns:
             - The line velocity
@@ -251,3 +251,50 @@ class Spectrum:
             std_dev(avg_area),
             np.std(nominal_values(area))
         ]
+
+
+class SpectraIterator:
+
+    def __init__(self, data_release, obj_ids, pre_process=None):
+
+        super().__init__()
+
+        # Make sure the passed data release is spectroscopic
+        data_type = data_release.data_type
+        if data_type != 'spectroscopic':
+            raise ValueError(f'Requires spectroscopic data. Passed {data_type}')
+
+        # Store arguments and set defaults
+        default_obj_ids = data_release.get_available_ids()
+        default_pre_process = lambda x: x
+
+        self.obj_ids = default_obj_ids if obj_ids is None else obj_ids
+        self.pre_process = default_pre_process if pre_process is None else pre_process
+        self.data_release = data_release
+
+        self.spectrum_changed = pyqtSignal()
+        self._iter_data = self._create_spectrum_iterator()
+
+    def _create_spectrum_iterator(self):
+        """Instantiate an iterator that sets ``self.current_spectrum``"""
+
+        for i, obj_id in enumerate(self.obj_ids):
+
+            # Retrieve and format object data
+            object_data = self.data_release.get_data_for_id(obj_id)
+            object_data = self.pre_process(object_data)
+            if not object_data:
+                continue
+
+            # Yield individual spectra for the object
+            for spectrum_data in object_data.group_by('time').groups:
+                spectrum = Spectrum(
+                    spectrum_data['wavelength'],
+                    spectrum_data['flux'],
+                    spectrum_data.meta)
+
+                spectrum.prepare_spectrum()
+                yield spectrum
+
+    def __next__(self):
+        return next(self._iter_data)
