@@ -22,7 +22,6 @@ Usage Example
    spec_summary = data_release.load_table(9)
    obj_ids = spec_summary[spec_summary['Type'] == 'Ia']['CID']
 
-
    # Function called to process data tables before plotting / analysis
    def pre_process(table):
        #Remove galaxy spectra from data tables

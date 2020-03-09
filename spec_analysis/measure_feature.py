@@ -5,6 +5,8 @@
 properties of an individual spectral feature.
 """
 
+from warnings import warn
+
 import numpy as np
 from astropy import units
 from astropy.constants import c
@@ -60,6 +62,9 @@ def pew(wave, flux):
 def velocity(rest_frame, wave, flux, unit=None):
     """Calculate the velocity of a feature
 
+    Fit a feature with a negative gaussian and determine the feature's
+    velocity. All returned values are ``np.nan`` if the fit fails.
+
     Args:
         rest_frame     (float): The rest frame wavelength of the feature
         wave         (ndarray): A sorted array of wavelengths for the feature
@@ -80,12 +85,17 @@ def velocity(rest_frame, wave, flux, unit=None):
     def gaussian(x, _depth, _avg, _std, _offset):
         return -_depth * np.exp(-((x - _avg) ** 2) / (2 * _std ** 2)) + _offset
 
-    (depth, avg, stddev, offset), cov = curve_fit(
-        f=gaussian,
-        xdata=wave,
-        ydata=flux,
-        p0=[0.5, np.median(wave), 50., 0],
-        sigma=eflux if any(eflux) else None)
+    try:
+        (depth, avg, stddev, offset), cov = curve_fit(
+            f=gaussian,
+            xdata=wave,
+            ydata=flux,
+            p0=[0.5, np.median(wave), 50., 0],
+            sigma=eflux if any(eflux) else None)
+
+    except RuntimeError as excep:
+        warn(str(excep))
+        return np.nan, np.nan, np.nan
 
     fit = gaussian(wave, depth, avg, stddev, offset)
     if any(eflux):

@@ -15,14 +15,17 @@ Usage Example
    from spec_analysis.app import run
 
    # Define demo data
-   # ``meta`` must have at minimum the keys ``z``, ``ra`` and ``dec``
+   # ``meta`` must have at minimum the keys ``z``, ``ra``, ``dec``, and ``time``
    wave = np.arange(1000, 2000)
    flux = np.random.random(wave)
-   meta = {'z': 0.1, 'ra': 0.15, 'dec': -0.2}
+   meta = {'z': 0.1, 'ra': 0.15, 'dec': -0.2, 'time': 2453000.5}
    spectrum = Spectrum(wave, flux, meta)
 
    # The meta data is still available in the object:
    print(spectrum.meta)
+
+   # To restframe, correct for extinction, and bin the spectum
+   spectrum.prepare_spectrum()
 
 Documentation
 -------------
@@ -95,7 +98,7 @@ class Spectrum:
         Args:
             wave (ndarray): Observed wavelength
             flux (ndarray): Observed flux
-            meta    (dict): Meta data including ``z``, ``ra`` and ``dec``
+            meta    (dict): Meta data with ``z``, ``ra``, ``dec``, and ``time``
         """
 
         self.wave = wave
@@ -233,7 +236,7 @@ class Spectrum:
                 continuum, norm_flux, pew = measure_feature.pew(nw, nf)
                 pequiv_width.append(pew)
 
-                vel, avg, fit = measure_feature.velocity(rest_frame, nw, norm_flux)
+                vel, *_ = measure_feature.velocity(rest_frame, nw, norm_flux)
                 velocity.append(vel)
 
         avg_velocity = np.mean(velocity)
@@ -287,7 +290,10 @@ class SpectraIterator:
                 continue
 
             # Yield individual spectra for the object
-            for spectrum_data in object_data.group_by('time').groups:
+            object_data = object_data.group_by('time')
+            group_iter = zip(object_data.groups.keys, object_data.groups)
+            for time, spectrum_data in group_iter:
+                spectrum_data.meta['time'] = time
                 spectrum = Spectrum(
                     spectrum_data['wavelength'],
                     spectrum_data['flux'],
