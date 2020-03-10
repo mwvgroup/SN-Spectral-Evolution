@@ -1,12 +1,13 @@
 # !/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-# Todo: finish example
 """The ``data_classes`` module provides object representations of
 astronomical data.
 
 Usage Example
 -------------
+
+First we define a demo spectrum:
 
 .. code-block:: python
    :linenos:
@@ -14,18 +15,44 @@ Usage Example
    import numpy as np
    from spec_analysis.app import run
 
-   # Define demo data
-   # ``meta`` must have at minimum the keys ``z``, ``ra``, ``dec``, and ``time``
-   wave = np.arange(1000, 2000)
-   flux = np.random.random(wave)
-   meta = {'z': 0.1, 'ra': 0.15, 'dec': -0.2, 'time': 2453000.5}
-   spectrum = Spectrum(wave, flux, meta)
+   spectrum = Spectrum(
+       wave=np.arange(1000, 2000),
+       flux=np.random.random(wave),
+       z=0.1,
+       ra=0.15,
+       dec=-0.2
+   )
 
-   # The meta data is still available in the object:
-   print(spectrum.meta)
+Before ``preparing`` the spectrum, the following attributes are ``None``:
 
-   # To restframe, correct for extinction, and bin the spectum
+.. code-block:: python
+   :linenos:
+
+   print(spectrum.rest_wave is None)  # Rest framed wavelengths
+   print(spectrum.rest_flux is None)  # Rest framed, extinction corrected flux
+   print(spectrum.bin_wave is None)  # The binned wavelengths
+   print(spectrum.bin_flux is None)  # The binned fluxes
+
+To correct extinction, rest frame, and bin the spectrum (in that order):
+
+.. code-block:: python
+   :linenos:
+
    spectrum.prepare_spectrum()
+
+   print(spectrum.rest_wave. is None)
+   print(spectrum.rest_flux is None)
+   print(spectrum.bin_wave is None)
+   print(spectrum.bin_flux is None)
+
+Once the spectrum is prepared, you can measure it's properties for a given
+feature. This requires knowing the start / end wavelength of the feature in
+the current spectrum, and the feature's rest framed position.
+
+.. code-block:: python
+   :linenos:
+
+   spectrum.sample_feature_properties(feat_start, feat_end, rest_frame):
 
 Documentation
 -------------
@@ -36,7 +63,6 @@ from pathlib import Path
 
 import numpy as np
 import sfdmap
-from PyQt5.QtCore import pyqtSignal
 from scipy.ndimage import gaussian_filter
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
@@ -90,22 +116,27 @@ def bin_avg(x, y, bins):
 class Spectrum:
     """Object representation of an observed spectrum"""
 
-    def __init__(self, wave, flux, meta):
+    def __init__(self, wave, flux, ra, dec, z, **kwargs):
         """Measures pEW and area of spectral features
-
-        target coordinates are expected in degrees.
 
         Args:
             wave (ndarray): Observed wavelength
             flux (ndarray): Observed flux
-            meta    (dict): Meta data with ``z``, ``ra``, ``dec``, and ``time``
+            ra     (float): The target's right ascension
+            dec    (float): The target's declination
+            z      (float): The target's redshift
+            Additional kwargs to set as instance attributes
         """
 
         self.wave = wave
         self.flux = flux
-        self.meta = meta
+        self.ra = ra
+        self.dec = dec
+        self.z = z
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
-        # Place holders for intermediate analysis results
+        # Place holders for results of intermediate analyses
         self.bin_wave, self.bin_flux = None, None
         self.rest_flux, self.rest_wave = None, None
         self.feature_bounds = []
@@ -128,15 +159,14 @@ class Spectrum:
         """
 
         # Determine extinction
-        ra, dec, z = self.meta['ra'], self.meta['dec'], self.meta['z']
-        mwebv = dust_map.ebv(ra, dec, frame='fk5j2000', unit='degree')
+        mwebv = dust_map.ebv(self.ra, self.dec, frame='fk5j2000', unit='degree')
         mag_ext = extinction.fitzpatrick99(self.wave, rv * mwebv, rv)
 
         # Correct flux to rest-frame
-        self.rest_wave = self.wave / (1 + z)
+        self.rest_wave = self.wave / (1 + self.z)
         self.rest_flux = self.flux * 10 ** (0.4 * mag_ext)
 
-    def _bin_spectrum(self, bin_size, method):
+    def _bin_spectrum(self, bin_size, bin_method):
         """Bin a spectrum to a given resolution
 
         Bins the values of ``self.rest_wave`` and ``self.rest_flux`` and sets
@@ -144,7 +174,7 @@ class Spectrum:
 
         Args:
             bin_size (float): The width of the bins
-            method     (str): Either 'avg', 'sum', or 'gauss'
+            bin_method (str): Either 'median', 'average', 'sum', or 'gauss'
 
         Returns:
             - The center of each bin
@@ -153,7 +183,7 @@ class Spectrum:
 
         # Don't apply binning if requested resolution is the same or less than
         # the observed wavelength resolution
-        if (method != 'gauss') and any(bin_size <= self.rest_wave[1:] - self.rest_wave[:-1]):
+        if (bin_method != 'gauss') and any(bin_size <= self.rest_wave[1:] - self.rest_wave[:-1]):
             self.bin_wave = self.rest_wave
             self.bin_flux = self.rest_flux
 
@@ -161,35 +191,37 @@ class Spectrum:
         max_wave = np.floor(np.max(self.rest_wave))
         bins = np.arange(min_wave, max_wave + 1, bin_size)
 
-        if method == 'sum':
+        if bin_method == 'sum':
             self.bin_wave, self.bin_flux = bin_sum(
                 self.rest_wave, self.rest_flux, bins)
 
-        elif method == 'avg':
+        elif bin_method == 'average':
             self.bin_wave, self.bin_flux = bin_avg(
                 self.rest_wave, self.rest_flux, bins)
 
-        elif method == 'gauss':
+        elif bin_method == 'gauss':
             self.bin_wave = self.rest_wave
             self.bin_flux = gaussian_filter(self.rest_flux, bin_size)
 
-        else:
-            raise ValueError(f'Unknown method {method}')
+        elif bin_method == 'median':
+            raise NotImplementedError()  # Todo: add this
 
-    def prepare_spectrum(self, rv=3.1, bin_size=5, method='avg'):
-        """Correct for extinction, rest-frame, and bin the spectrum
+        else:
+            raise ValueError(f'Unknown method {bin_method}')
+
+    def prepare_spectrum(self, rv=3.1, bin_size=5, bin_method='median'):
+        """Correct for extinction, then rest-frame and bin the spectrum
 
         Args:
             bin_size (float): Bin size in units of Angstroms
-            method     (str): Either 'avg' or 'sum' the values of each bin
+            bin_method (str): Either 'average', 'sum', 'median', or 'gauss'
             rv       (float): Rv value to use for extinction (Default: 3.1)
         """
 
         self._correct_extinction(rv=rv)
-        self._bin_spectrum(bin_size=bin_size, method=method)
+        self._bin_spectrum(bin_size=bin_size, bin_method=bin_method.lower())
 
-    def sample_feature_properties(
-            self, feat_start, feat_end, rest_frame, nstep=5):
+    def sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
         """Calculate the properties of a single feature in a spectrum
 
         Velocity values are returned in km / s. Error values are determined
@@ -259,6 +291,20 @@ class Spectrum:
 class SpectraIterator:
 
     def __init__(self, data_release, obj_ids, pre_process=None):
+        """An iterator over individual spectra in a data release
+
+        Any meta data for a given spectrum is added as an attribute to the
+        corresponding ``Spectrum`` object. The time of the observation is also
+        included as an attribute.
+
+        Args:
+            data_release (SpectroscopicRelease): An sndata style data release
+            obj_ids         (list): Optionally only consider a subset of Id's
+            pre_process (Callable): Function to prepare data before plotting
+
+        Yields:
+            ``Spectrum`` objects
+        """
 
         super().__init__()
 
@@ -275,7 +321,7 @@ class SpectraIterator:
         self.pre_process = default_pre_process if pre_process is None else pre_process
         self.data_release = data_release
 
-        self.spectrum_changed = pyqtSignal()
+        # Build iterator over spectra
         self._iter_data = self._create_spectrum_iterator()
 
     def _create_spectrum_iterator(self):
@@ -293,13 +339,13 @@ class SpectraIterator:
             object_data = object_data.group_by('time')
             group_iter = zip(object_data.groups.keys, object_data.groups)
             for time, spectrum_data in group_iter:
-                spectrum_data.meta['time'] = time
                 spectrum = Spectrum(
                     spectrum_data['wavelength'],
                     spectrum_data['flux'],
-                    spectrum_data.meta)
+                    time=time[0],
+                    **spectrum_data.meta  # meta should include ra, dec, and z
+                )
 
-                spectrum.prepare_spectrum()
                 yield spectrum
 
     def __next__(self):

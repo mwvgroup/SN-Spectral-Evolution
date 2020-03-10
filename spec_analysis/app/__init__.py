@@ -40,26 +40,16 @@ from PyQt5.QtWidgets import QApplication
 from ._main_window import MainWindow
 
 
-def run(data_release, out_path, features=None, obj_ids=None, pre_process=None):
+def run(spectra_iter, out_path, config):
     """Run the graphical interface
 
     Args:
-        data_release (SpectroscopicRelease): An sndata style data release
-        out_path         (str): Name of CSV file to save results to
-        features        (dict): Feature definitions
-        obj_ids         (list): Optionally only consider a subset of Id's
-        pre_process (Callable): Function to prepare data before plotting
+        spectra_iter (SpectraIterator): Iterator over the data to measure
+        out_path  (str): Name of CSV file where results are saved
+        config   (dict): Application config settings
     """
 
-    if features is None:
-        from pathlib import Path
-        import yaml
-
-        default_feature_path = Path(__file__).resolve().parent / 'features.yml'
-        with open(default_feature_path) as infile:
-            features = yaml.load(infile, Loader=yaml.FullLoader)
-
     app = QApplication([])
-    window = MainWindow(data_release, out_path, features, obj_ids, pre_process)
+    window = MainWindow(spectra_iter, out_path, config)
     window.show()
     app.exec_()

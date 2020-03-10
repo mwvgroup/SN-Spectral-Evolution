@@ -12,7 +12,6 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QApplication
-from sndata.base_classes import SpectroscopicRelease
 
 from spec_analysis import measure_feature
 from spec_analysis.data_classes import SpectraIterator
@@ -57,23 +56,15 @@ def get_existing_data(out_path: Path = None) -> pd.DataFrame:
 # first to give the GUI a chance to catch up or labels may not update correctly
 # This is a bug is mostly seen on MAC OS with PyQt5 >= 5.11
 class MainWindow(QtWidgets.QMainWindow):
-    """The main window for visualizing and measuring spectra"""
+    """The run_sako18spec window for visualizing and measuring spectra"""
 
-    def __init__(
-            self,
-            data_release: SpectroscopicRelease,
-            out_path: str,
-            features: dict,
-            obj_ids: list = None,
-            pre_process: callable = None):
+    def __init__(self, spectra_iter, out_path, config):
         """Visualization tool for measuring spectroscopic features
 
         Args:
-            data_release: An sndata style data release
-            out_path: Name of CSV file to save results to
-            features: Feature definitions
-            obj_ids: Optionally only consider a subset of Id's
-            pre_process: Function to prepare data before plotting
+            spectra_iter (SpectraIterator): Iterator over the data to measure
+            out_path  (str): Name of CSV file where results are saved
+            config   (dict): Application config settings
         """
 
         # noinspection PyArgumentList
@@ -81,19 +72,18 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi(_gui_layouts_dir / 'mainwindow.ui', self)
 
         # Store arguments
+        self._spectra_iter = spectra_iter
         self.out_path = Path(out_path).with_suffix('.csv')
-        self.data_release = data_release
-        self.features = features
+        self._config = config
+        self.features = config['features']
 
         # Set up spectra and spectral measurements
-        self.obj_ids = data_release.get_available_ids() if obj_ids is None else obj_ids
-        self.spectra_iter = SpectraIterator(data_release, obj_ids, pre_process)
         self.tabulated_results = get_existing_data(self.out_path)
         self.current_spec_results = get_existing_data()
 
         # Setup tasks
-        self.current_survey_label.setText(data_release.survey_abbrev)
-        self.current_release_label.setText(data_release.release)
+        self.current_survey_label.setText(spectra_iter.data_release.survey_abbrev)
+        self.current_release_label.setText(spectra_iter.data_release.release)
         self._init_plot_widget()
         self.connect_signals()
 
@@ -143,7 +133,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def connect_signals(self) -> None:
         """Connect signals / slots of GUI widgets"""
 
-        # Connect the main submission buttons
+        # Connect the run_sako18spec submission buttons
         self.save_button.clicked.connect(self.save)
         self.skip_button.clicked.connect(self.skip)
         self.skip_all_button.clicked.connect(self.skip_all)
@@ -193,10 +183,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Update appropriate GUI labels
         QApplication.processEvents()
-        self.current_object_id_label.setText(spectrum.meta['obj_id'])
-        self.current_ra_label.setText(str(spectrum.meta['ra']))
-        self.current_dec_label.setText(str(spectrum.meta['dec']))
-        self.current_redshift_label.setText(str(spectrum.meta['z']))
+        self.current_object_id_label.setText(spectrum.obj_id)
+        self.current_ra_label.setText(str(spectrum.ra))
+        self.current_dec_label.setText(str(spectrum.dec))
+        self.current_redshift_label.setText(str(spectrum.z))
         self.current_feature_label.setText(feat_name)
 
         self.graph_widget.autoRange()
@@ -216,20 +206,24 @@ class MainWindow(QtWidgets.QMainWindow):
             self.write_results_to_file()
 
         # Get next spectrum for inspection
-        self.current_spectrum = next(self.spectra_iter)
-        obj_id = self.current_spectrum.meta['obj_id']
-        time = self.current_spectrum.meta['time']
+        self.current_spectrum = next(self._spectra_iter)
+        obj_id = self.current_spectrum.obj_id
+        time = self.current_spectrum.time
 
         # Skip over spectrum if it has already been inspected
         existing_obj_id = self.tabulated_results.index.get_level_values('obj_id')
         existing_times = self.tabulated_results.index.get_level_values('time')
         while (obj_id in existing_obj_id) and (time in existing_times):
-            self.current_spectrum = next(self.spectra_iter)
-            obj_id = self.current_spectrum.meta['obj_id']
-            time = self.current_spectrum.meta['time']
+            self.current_spectrum = next(self._spectra_iter)
+            obj_id = self.current_spectrum.obj_id
+            time = self.current_spectrum.time
+
+        # Prepare spectrum for analysis
+        self.current_spectrum.prepare_spectrum(**self._config['prepare'])
 
         # Update the progress bar
-        progress = list(self.obj_ids).index(obj_id) / len(self.obj_ids) * 100
+        obj_id_list = list(self._spectra_iter.obj_ids)
+        progress = obj_id_list.index(obj_id) / len(obj_id_list) * 100
         self.progress_bar.setValue(progress)
 
         # Reset labels
@@ -328,7 +322,7 @@ class MainWindow(QtWidgets.QMainWindow):
             feat_start=lower_bound,
             feat_end=upper_bound,
             rest_frame=self.current_feature[1]['restframe'],
-            nstep=5
+            nstep=self._config['nstep']
         )
 
         # Add results to the data frame
@@ -336,10 +330,10 @@ class MainWindow(QtWidgets.QMainWindow):
         new_row.extend(feature_measurements)
         new_row.append(self.notes_text_edit.toPlainText())
 
-        obj_id = self.current_spectrum.meta['obj_id']
+        obj_id = self.current_spectrum.obj_id
         feat_name = self.current_feature[0]
-        time = self.current_spectrum.meta['time']
-        self.current_spec_results.loc[obj_id, time, feat_name] = new_row
+        time = self.current_spectrum.time
+        self.current_spec_results.loc[(obj_id, time, feat_name)] = new_row
 
         QApplication.processEvents()
         self.last_feature_start_label.setText(str(lower_bound_loc))
