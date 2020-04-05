@@ -1,7 +1,7 @@
 # !/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""The ``measure_feature`` module provides logic for measuring the
+"""The ``features`` module provides logic for measuring the
 properties of an individual spectral feature.
 """
 

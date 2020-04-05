@@ -1,8 +1,7 @@
 # !/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""The ``data_classes`` module provides object representations of
-astronomical data.
+"""The ``spectra`` module provides object representations of spectra.
 
 Usage Example
 -------------
@@ -140,8 +139,8 @@ class Spectrum:
         """Measures pEW and calc_area of spectral features
 
         Args:
-            wave (ndarray): Observed wavelength
-            flux (ndarray): Observed flux
+            wave (ndarray): Observer frame wavelength
+            flux (ndarray): Observer frame flux
             ra     (float): The target's right ascension
             dec    (float): The target's declination
             z      (float): The target's redshift
