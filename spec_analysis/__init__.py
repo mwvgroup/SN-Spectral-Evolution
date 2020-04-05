@@ -3,7 +3,7 @@
 
 """The ``spec_analysis`` package provides a graphical interface for measuring
 the spectroscopic properties of Type Ia Supernovae (SNe Ia). It is compatible
-with spectroscopic data release provided by the ``sndata`` package - including
+with spectroscopic data releases provided by the ``sndata`` package - including
 combined and custom data sets.
 """
 
