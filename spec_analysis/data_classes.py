@@ -58,10 +58,11 @@ Documentation
 -------------
 """
 
-import extinction
 from pathlib import Path
 
+import extinction
 import numpy as np
+import scipy
 import sfdmap
 from scipy.ndimage import gaussian_filter
 from uncertainties import nominal_value, std_dev
@@ -75,7 +76,7 @@ dust_map = sfdmap.SFDMap(_dust_dir)
 
 
 def bin_sum(x, y, bins):
-    """Fined the binned sum of a sampled function
+    """Find the binned sum of a sampled function
 
     Args:
         x    (ndarray): Array of x values
@@ -84,7 +85,7 @@ def bin_sum(x, y, bins):
 
     Return:
         - An array of bin centers
-        - An array of binned fluxes
+        - An array of binned y values
     """
 
     hist, bin_edges = np.histogram(x, bins=bins, weights=y)
@@ -93,7 +94,7 @@ def bin_sum(x, y, bins):
 
 
 def bin_avg(x, y, bins):
-    """Fined the binned average of a sampled function
+    """Find the binned average of a sampled function
 
     Args:
         x    (ndarray): Array of x values
@@ -102,7 +103,7 @@ def bin_avg(x, y, bins):
 
     Return:
         - An array of bin centers
-        - An array of binned fluxes
+        - An array of binned y values
     """
 
     bin_centers, _ = bin_sum(x, y, bins)
@@ -111,6 +112,24 @@ def bin_avg(x, y, bins):
             np.histogram(x, bins)[0]
     )
     return bin_centers, bin_means
+
+
+def bin_median(x, y, size, cval=0):
+    """Pass data through a median filter
+
+    Args:
+        x    (ndarray): Array of x values
+        y    (ndarray): Array of y values
+        size (float): Size of the filter window
+        cval (float): Value used to pad edges of filtered data
+
+    Return:
+        - An array of filtered x values
+        - An array of filtered y values
+    """
+
+    filter_y = scipy.ndimage.median_filter(y, size, mode='constant', cval=cval)
+    return x, filter_y
 
 
 class Spectrum:
@@ -204,7 +223,8 @@ class Spectrum:
             self.bin_flux = gaussian_filter(self.rest_flux, bin_size)
 
         elif bin_method == 'median':
-            raise NotImplementedError()  # Todo: add this
+            self.bin_wave, self.bin_flux = bin_median(
+                self.rest_wave, self.rest_flux, bin_size)
 
         else:
             raise ValueError(f'Unknown method {bin_method}')
