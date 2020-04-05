@@ -21,6 +21,11 @@ Documentation
 """
 
 
-class FeatureOutOfBounds(Exception):
-    """The requested feature was not observed"""
+class FeatureNotObserved(Exception):
+    """Feature was not observed or does not span indicated wavelength range"""
+    pass
+
+
+class SamplingRangeError(Exception):
+    """Resampling process extends beyond available wavelength range"""
     pass

@@ -67,8 +67,8 @@ from scipy.ndimage import gaussian_filter
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
+from .exceptions import SamplingRangeError
 from .features import ObservedFeature
-from .exceptions import FeatureOutOfBounds
 
 _file_dir = Path(__file__).resolve().parent
 _dust_dir = _file_dir / 'schlegel98_dust_map'
@@ -287,7 +287,7 @@ class Spectrum:
                 sample_end_idx = idx_end + j
 
                 if sample_start_idx < 0 or sample_end_idx >= len(self.bin_wave):
-                    raise FeatureOutOfBounds
+                    raise SamplingRangeError
 
                 nw = self.bin_wave[sample_start_idx: sample_end_idx]
                 nf = self.bin_flux[sample_start_idx: sample_end_idx]

@@ -10,7 +10,7 @@ from astropy.constants import c
 from uncertainties.unumpy import uarray
 
 from spec_analysis import features
-from spec_analysis.exceptions import FeatureOutOfBounds
+from spec_analysis.exceptions import FeatureNotObserved
 from .utils import SimulatedSpectrum
 
 
@@ -157,7 +157,7 @@ class FindPeakWavelength(TestCase):
         """Test an error is raise if the feature is out of bounds"""
 
         max_wavelength = max(self.wave)
-        with self.assertRaises(FeatureOutOfBounds):
+        with self.assertRaises(FeatureNotObserved):
             features.find_peak_wavelength(
                 wave=self.wave,
                 flux=self.flux,

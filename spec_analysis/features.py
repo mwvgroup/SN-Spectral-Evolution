@@ -14,7 +14,7 @@ from scipy.optimize import curve_fit
 from uncertainties import ufloat
 from uncertainties.unumpy import nominal_values, std_devs
 
-from .exceptions import FeatureOutOfBounds
+from .exceptions import FeatureNotObserved
 
 
 def find_peak_wavelength(wave, flux, lower_bound, upper_bound, behavior='min'):
@@ -37,7 +37,7 @@ def find_peak_wavelength(wave, flux, lower_bound, upper_bound, behavior='min'):
 
     # Make sure the given spectrum spans the given wavelength bounds
     if not any((wave > lower_bound) & (wave < upper_bound)):
-        raise FeatureOutOfBounds('Feature not in spectral wavelength range.')
+        raise FeatureNotObserved('Feature not in spectral wavelength range.')
 
     # Select the portion of the spectrum within the given bounds
     feature_indices = (lower_bound <= wave) & (wave <= upper_bound)

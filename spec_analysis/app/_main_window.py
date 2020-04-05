@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import QApplication
 
 from spec_analysis import features
 from spec_analysis.spectra import SpectraIterator
-from spec_analysis.exceptions import FeatureOutOfBounds
+from spec_analysis.exceptions import FeatureNotObserved
 
 _file_dir = Path(__file__).resolve().parent
 _gui_layouts_dir = _file_dir / 'gui_layouts'
@@ -263,7 +263,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.current_feature[1]
                 )
 
-            except FeatureOutOfBounds:
+            except FeatureNotObserved:
                 continue
 
             break
