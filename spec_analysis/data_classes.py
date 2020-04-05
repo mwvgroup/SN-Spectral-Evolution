@@ -23,7 +23,7 @@ First we define a demo spectrum:
        dec=-0.2
    )
 
-Before ``preparing`` the spectrum, the following attributes are ``None``:
+By default, the following attributes are ``None``:
 
 .. code-block:: python
    :linenos:
@@ -160,7 +160,7 @@ class Spectrum:
         self.rest_flux, self.rest_wave = None, None
         self.feature_bounds = []
 
-    def _correct_extinction(self, rv):
+    def correct_extinction(self, rv):
         """Rest frame spectra and correct for MW extinction
 
         Spectra are rest-framed and corrected for MW extinction using the
@@ -185,7 +185,7 @@ class Spectrum:
         self.rest_wave = self.wave / (1 + self.z)
         self.rest_flux = self.flux * 10 ** (0.4 * mag_ext)
 
-    def _bin_spectrum(self, bin_size, bin_method):
+    def bin_spectrum(self, bin_size, bin_method):
         """Bin a spectrum to a given resolution
 
         Bins the values of ``self.rest_wave`` and ``self.rest_flux`` and sets
@@ -199,6 +199,9 @@ class Spectrum:
             - The center of each bin
             - The binned flux values
         """
+
+        if self.rest_wave is None or self.rest_flux is None:
+            raise RuntimeError('Spectrum must be corrected for extinction before binning')
 
         # Don't apply binning if requested resolution is the same or less than
         # the observed wavelength resolution
@@ -232,14 +235,17 @@ class Spectrum:
     def prepare_spectrum(self, rv=3.1, bin_size=5, bin_method='median'):
         """Correct for extinction, then rest-frame and bin the spectrum
 
+        This is a convenience function for calling the ``correct_extinction``
+        and ``bin_spectrum`` methods.
+
         Args:
             bin_size (float): Bin size in units of Angstroms
-            bin_method (str): Either 'average', 'sum', 'median', or 'gauss'
+            bin_method (str): Either 'median', 'average', 'sum', or 'gauss'
             rv       (float): Rv value to use for extinction (Default: 3.1)
         """
 
-        self._correct_extinction(rv=rv)
-        self._bin_spectrum(bin_size=bin_size, bin_method=bin_method.lower())
+        self.correct_extinction(rv=rv)
+        self.bin_spectrum(bin_size=bin_size, bin_method=bin_method.lower())
 
     def sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
         """Calculate the properties of a single feature in a spectrum
@@ -310,9 +316,11 @@ class Spectrum:
 
 class SpectraIterator:
 
-    def __init__(self, data_release, obj_ids, pre_process=None):
+    def __init__(self, data_release, obj_ids=None, pre_process=None, group_by='time'):
         """An iterator over individual spectra in a data release
 
+        Instantiates an iterator over spectra in a ``sndata`` data release.
+        Spectra are yielded individually as ``Spectrum`` objects.
         Any meta data for a given spectrum is added as an attribute to the
         corresponding ``Spectrum`` object. The time of the observation is also
         included as an attribute.
@@ -335,11 +343,10 @@ class SpectraIterator:
 
         # Store arguments and set defaults
         default_obj_ids = data_release.get_available_ids()
-        default_pre_process = lambda x: x
-
         self.obj_ids = default_obj_ids if obj_ids is None else obj_ids
-        self.pre_process = default_pre_process if pre_process is None else pre_process
+        self.pre_process = pre_process
         self.data_release = data_release
+        self.group_by = group_by
 
         # Build iterator over spectra
         self._iter_data = self._create_spectrum_iterator()
@@ -351,21 +358,24 @@ class SpectraIterator:
 
             # Retrieve and format object data
             object_data = self.data_release.get_data_for_id(obj_id)
-            object_data = self.pre_process(object_data)
+            if self.pre_process:
+                object_data = self.pre_process(object_data)
+
+            # If formatting data results in an empty table, skip to next object
             if not object_data:
                 continue
 
             # Yield individual spectra for the object
-            object_data = object_data.group_by('time')
+            object_data = object_data.group_by(self.group_by)
             group_iter = zip(object_data.groups.keys, object_data.groups)
-            for time, spectrum_data in group_iter:
+            for group_by_val, spectrum_data in group_iter:
                 spectrum = Spectrum(
                     spectrum_data['wavelength'],
                     spectrum_data['flux'],
-                    time=time[0],
                     **spectrum_data.meta  # meta should include ra, dec, and z
                 )
 
+                setattr(spectrum, self.group_by, group_by_val)
                 yield spectrum
 
     def __next__(self):
