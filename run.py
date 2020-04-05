@@ -9,7 +9,7 @@ import yaml
 from sndata.sdss import Sako18Spec
 
 from spec_analysis.app import run
-from spec_analysis.data_classes import SpectraIterator
+from spec_analysis.spectra import SpectraIterator
 
 
 def run_sako18spec():

@@ -68,7 +68,8 @@ from scipy.ndimage import gaussian_filter
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
-from . import measure_feature
+from .features import ObservedFeature
+from .exceptions import FeatureOutOfBounds
 
 _file_dir = Path(__file__).resolve().parent
 _dust_dir = _file_dir / 'schlegel98_dust_map'
@@ -136,7 +137,7 @@ class Spectrum:
     """Object representation of an observed spectrum"""
 
     def __init__(self, wave, flux, ra, dec, z, **kwargs):
-        """Measures pEW and area of spectral features
+        """Measures pEW and calc_area of spectral features
 
         Args:
             wave (ndarray): Observed wavelength
@@ -267,9 +268,9 @@ class Spectrum:
             - The equivalent width
             - The formal error in equivalent width
             - The sampling error in equivalent width
-            - The feature area
-            - The formal error in area
-            - The sampling error in area
+            - The feature calc_area
+            - The formal error in calc_area
+            - The sampling error in calc_area
         """
 
         # Get indices for beginning and end of the feature
@@ -286,15 +287,20 @@ class Spectrum:
                 sample_start_idx = idx_start + i
                 sample_end_idx = idx_end + j
 
+                if sample_start_idx < 0 or sample_end_idx >= len(self.bin_wave):
+                    raise FeatureOutOfBounds
+
                 nw = self.bin_wave[sample_start_idx: sample_end_idx]
                 nf = self.bin_flux[sample_start_idx: sample_end_idx]
 
+                feature = ObservedFeature(nw, nf)
+
                 # Determine feature properties
-                area.append(measure_feature.area(nw, nf))
-                continuum, norm_flux, pew = measure_feature.pew(nw, nf)
+                area.append(feature.calc_area())
+                continuum, norm_flux, pew = feature.calc_pew()
                 pequiv_width.append(pew)
 
-                vel, *_ = measure_feature.velocity(rest_frame, nw, norm_flux)
+                vel = feature.calc_velocity(rest_frame)
                 velocity.append(vel)
 
         avg_velocity = np.mean(velocity)

@@ -15,7 +15,7 @@ phases from 12 days before to over 150 days after the time of B-band maximum lig
 Sako et al. 2018 presents data from the Sloan Digital Sky Survey-II (SDSS-II)
 Supernova Survey conducted between 2005 and 2007. Light curves are presented
 for 10,258 variable and transient sources discovered through repeat `ugriz`
-imaging of SDSS Stripe 82, a 300 deg2 area along the celestial equator. This
+imaging of SDSS Stripe 82, a 300 deg2 calc_area along the celestial equator. This
 data release is comprised of all transient sources brighter than r ≃ 22.5 mag
 with no history of variability prior to 2004.
 

@@ -8,7 +8,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from spec_analysis import measure_feature
+from spec_analysis import features
 from .utils import SimulatedSpectrum
 
 
@@ -34,7 +34,7 @@ class CorrectExtinction(TestCase):
         rv = 3.1
 
         shifted_wave = self.test_wave * (1 + z)
-        rested_wave, flux = measure_feature.correct_extinction(
+        rested_wave, flux = features.correct_extinction(
             shifted_wave, self.test_flux, ra, dec, z=z, rv=rv
         )
         self.assertListEqual(
@@ -57,11 +57,11 @@ class CorrectExtinction(TestCase):
         dec = -29
         rv = 3.1
 
-        mwebv = measure_feature.dust_map.ebv(ra, dec, frame='fk5j2000', unit='degree')
+        mwebv = features.dust_map.ebv(ra, dec, frame='fk5j2000', unit='degree')
         ext = extinction.fitzpatrick99(self.test_wave, a_v=rv * mwebv)
         extincted_flux = extinction.apply(ext, self.test_flux)
 
-        wave, flux = measure_feature.correct_extinction(
+        wave, flux = features.correct_extinction(
             self.test_wave, extincted_flux, ra, dec, z, rv=rv)
 
         is_close = np.isclose(self.test_flux, flux).all()
@@ -83,7 +83,7 @@ class BinSpectrum(TestCase):
     def test_correct_binned_average(self):
         """Test flux values are correctly averaged in each bin"""
 
-        bins, avgs = measure_feature.bin_spectrum(self.wave, self.flux)
+        bins, avgs = features.bin_spectrum(self.wave, self.flux)
         correct_avg = (avgs == 1).all()
         self.assertTrue(correct_avg)
 
@@ -91,7 +91,7 @@ class BinSpectrum(TestCase):
         """Test flux values are correctly summed in each bin"""
 
         bin_size = 5
-        bins, sums = measure_feature.bin_spectrum(
+        bins, sums = features.bin_spectrum(
             self.wave, self.flux, bin_size, method='sum')
 
         sums[-1] -= 1  # Because of inclusion of values at the boundary
@@ -103,7 +103,7 @@ class BinSpectrum(TestCase):
 
         err_msg = 'Differing element when calculating {}'
         for method in ('avg', 'sum'):
-            returned, _ = measure_feature.bin_spectrum(
+            returned, _ = features.bin_spectrum(
                 self.wave, self.flux, bin_size=.5, method=method)
 
             self.assertListEqual(
@@ -117,7 +117,7 @@ class BinSpectrum(TestCase):
         for method in ('avg', 'sum'):
             expected = np.arange(self.wave[0], self.wave[-1],
                                  bin_size) + bin_size / 2
-            returned, _ = measure_feature.bin_spectrum(
+            returned, _ = features.bin_spectrum(
                 self.wave, self.flux, bin_size=bin_size, method=method)
 
             self.assertListEqual(
@@ -127,4 +127,4 @@ class BinSpectrum(TestCase):
         """Test a ValueError error is raised for an unknown binning method"""
 
         kwargs = dict(wave=self.wave, flux=self.flux, method='fake_method')
-        self.assertRaises(ValueError, measure_feature.bin_spectrum, **kwargs)
+        self.assertRaises(ValueError, features.bin_spectrum, **kwargs)

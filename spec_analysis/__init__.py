@@ -9,4 +9,4 @@ combined and custom data sets.
 
 from . import app
 from . import exceptions
-from . import measure_feature
+from . import features

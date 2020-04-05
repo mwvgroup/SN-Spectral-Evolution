@@ -13,8 +13,8 @@ from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QApplication
 
-from spec_analysis import measure_feature
-from spec_analysis.data_classes import SpectraIterator
+from spec_analysis import features
+from spec_analysis.spectra import SpectraIterator
 from spec_analysis.exceptions import FeatureOutOfBounds
 
 _file_dir = Path(__file__).resolve().parent
@@ -42,7 +42,7 @@ def get_existing_data(out_path: Path = None) -> pd.DataFrame:
             out_path.parent.mkdir(exist_ok=True, parents=True)
 
     col_names = ['obj_id', 'time', 'feat_name', 'feat_start', 'feat_end']
-    for value in ('vel', 'pew', 'area'):
+    for value in ('vel', 'pew', 'calc_area'):
         col_names.append(value)
         col_names.append(value + '_err')
         col_names.append(value + '_samperr')
@@ -165,7 +165,7 @@ class MainWindow(QtWidgets.QMainWindow):
             pen={'color': 'k'})
 
         # Guess start and end locations of the feature
-        lower_bound, upper_bound = measure_feature.guess_feature_bounds(
+        lower_bound, upper_bound = features.guess_feature_bounds(
             self.current_spectrum.bin_wave,
             self.current_spectrum.bin_flux,
             self.current_feature[1]
@@ -257,7 +257,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # If the feature is out of range, try the next one
             try:
-                measure_feature.guess_feature_bounds(
+                features.guess_feature_bounds(
                     self.current_spectrum.bin_wave,
                     self.current_spectrum.bin_flux,
                     self.current_feature[1]

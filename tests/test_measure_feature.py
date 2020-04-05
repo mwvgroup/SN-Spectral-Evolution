@@ -9,24 +9,24 @@ import numpy as np
 from astropy.constants import c
 from uncertainties.unumpy import uarray
 
-from spec_analysis import measure_feature
+from spec_analysis import features
 from spec_analysis.exceptions import FeatureOutOfBounds
 from .utils import SimulatedSpectrum
 
 
 class Area(TestCase):
-    """Tests for the ``area`` function"""
+    """Tests for the ``calc_area`` function"""
 
     def test_tophat_area(self):
-        """Test the correct area is returned for an inverse top-hat feature"""
+        """Test the correct calc_area is returned for an inverse top-hat feature"""
 
         # We use a simulated flux that will remain unchanged when normalized
-        # This means the feature area is the same as the width of the feature
+        # This means the feature calc_area is the same as the width of the feature
         wave = np.arange(1000, 3000)
         flux, eflux = SimulatedSpectrum.tophat(wave)
 
         expected_area = len(wave) - 200
-        returned_area = measure_feature.area(wave, flux)
+        returned_area = features.area(wave, flux)
         self.assertEqual(expected_area, returned_area)
 
     def test_no_feature(self):
@@ -35,14 +35,14 @@ class Area(TestCase):
         """
 
         wave = np.arange(1000, 3000)
-        self.assertEqual(0, measure_feature.area(wave, wave))
+        self.assertEqual(0, features.area(wave, wave))
 
     def test_uarray_support(self):
         """Test the function supports input arrays with ufloat objects"""
 
         wave = np.arange(1000, 2000)
         uflux = uarray(*SimulatedSpectrum.gaussian(wave, stddev=100))
-        returned_area = measure_feature.area(wave, uflux)
+        returned_area = features.area(wave, uflux)
         self.assertLess(0, returned_area.std_dev)
 
 
@@ -56,7 +56,7 @@ class PEW(TestCase):
         flux, eflux = SimulatedSpectrum.tophat(wave)
 
         expected_area = len(wave) - 200
-        continuum, norm_flux, returned_area = measure_feature.pew(wave, flux)
+        continuum, norm_flux, returned_area = features.pew(wave, flux)
 
         self.assertEqual(expected_area, returned_area)
 
@@ -68,7 +68,7 @@ class PEW(TestCase):
         wave = np.arange(1000, 3000)
         flux, eflux = SimulatedSpectrum.tophat(wave, height=None)
 
-        continuum, norm_flux, pew = measure_feature.pew(wave, flux)
+        continuum, norm_flux, pew = features.pew(wave, flux)
         self.assertEqual(0, pew)
 
     def test_normalization(self):
@@ -79,7 +79,7 @@ class PEW(TestCase):
         wave = np.arange(1000, 3000)
         flux = 2 * wave
 
-        continuum, norm_flux, pew = measure_feature.pew(wave, flux)
+        continuum, norm_flux, pew = features.pew(wave, flux)
         expected_norm_flux = np.ones_like(flux).tolist()
 
         self.assertListEqual(expected_norm_flux, norm_flux.tolist())
@@ -89,12 +89,12 @@ class PEW(TestCase):
 
         wave = np.arange(1000, 2000)
         uflux = uarray(*SimulatedSpectrum.gaussian(wave, stddev=100))
-        continuum, norm_flux, pew = measure_feature.pew(wave, uflux)
+        continuum, norm_flux, pew = features.pew(wave, uflux)
         self.assertLess(0, pew.std_dev)
 
 
 class Velocity(TestCase):
-    """Tests for the ``area`` function"""
+    """Tests for the ``calc_area`` function"""
 
     def test_velocity_estimation(self):
         wave = np.arange(1000, 2000)
@@ -110,7 +110,7 @@ class Velocity(TestCase):
                 (lambda_ratio ** 2 - 1) / (lambda_ratio ** 2 + 1)
         )
 
-        v_returned, *_ = measure_feature.velocity(
+        v_returned, *_ = features.velocity(
             lambda_rest, wave, flux, unit=c.unit)
 
         self.assertEqual(v_expected, v_returned)
@@ -124,8 +124,8 @@ class Velocity(TestCase):
         flux, eflux = SimulatedSpectrum.gaussian(wave, stddev=100)
         uflux = uarray(flux, eflux)
 
-        velocity_no_err, *_ = measure_feature.velocity(lambda_rest, wave, flux)
-        velocity_w_err, *_ = measure_feature.velocity(lambda_rest, wave, uflux)
+        velocity_no_err, *_ = features.velocity(lambda_rest, wave, flux)
+        velocity_w_err, *_ = features.velocity(lambda_rest, wave, uflux)
         self.assertAlmostEqual(velocity_no_err, velocity_w_err.nominal_value)
 
 
@@ -144,7 +144,7 @@ class FindPeakWavelength(TestCase):
         """Test the correct peak wavelength is found for a single flux spike"""
 
         expected_peak = self.peak_wavelengths[0]
-        recovered_peak = measure_feature.find_peak_wavelength(
+        recovered_peak = features.find_peak_wavelength(
             wave=self.wave,
             flux=self.flux,
             lower_bound=expected_peak - 10,
@@ -158,7 +158,7 @@ class FindPeakWavelength(TestCase):
 
         max_wavelength = max(self.wave)
         with self.assertRaises(FeatureOutOfBounds):
-            measure_feature.find_peak_wavelength(
+            features.find_peak_wavelength(
                 wave=self.wave,
                 flux=self.flux,
                 lower_bound=max_wavelength + 10,
@@ -172,7 +172,7 @@ class FindPeakWavelength(TestCase):
 
         lower_peak_wavelength = min(self.peak_wavelengths)
         upper_peak_wavelength = max(self.peak_wavelengths)
-        returned_lower_peak = measure_feature.find_peak_wavelength(
+        returned_lower_peak = features.find_peak_wavelength(
             self.wave,
             self.flux,
             lower_peak_wavelength - 10,
@@ -183,7 +183,7 @@ class FindPeakWavelength(TestCase):
         self.assertEqual(
             lower_peak_wavelength, returned_lower_peak, 'Incorrect min peak')
 
-        returned_upper_peak = measure_feature.find_peak_wavelength(
+        returned_upper_peak = features.find_peak_wavelength(
             self.wave,
             self.flux,
             lower_peak_wavelength - 10,
@@ -216,7 +216,7 @@ class FindFeatureBounds(TestCase):
             'upper_red': upper_peak_wavelength + 10
         }
 
-        feat_start, feat_end = measure_feature.guess_feature_bounds(
+        feat_start, feat_end = features.guess_feature_bounds(
             wave, flux, feature_dict)
 
         self.assertEqual(
