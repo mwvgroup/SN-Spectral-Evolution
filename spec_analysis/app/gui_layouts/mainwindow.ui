@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>914</width>
-    <height>632</height>
+    <height>650</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,85 +65,71 @@
           <property name="topMargin">
            <number>10</number>
           </property>
-          <item row="2" column="0">
-           <widget class="QLabel" name="object_id_label">
-            <property name="text">
-             <string>Object Id:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="current_object_id_label">
-            <property name="text">
-             <string>None</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="redshift_label">
-            <property name="text">
-             <string>Redshift:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="current_redshift_label">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="ra_label">
-            <property name="text">
-             <string>RA:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="current_ra_label">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="dec_label">
-            <property name="text">
-             <string>Dec:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QLabel" name="current_dec_label">
-            <property name="text">
-             <string>0</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="survey_label">
+           <widget class="QLabel" name="release_label">
             <property name="text">
-             <string>Survey:</string>
+             <string>Release:</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLabel" name="current_survey_label">
+           <widget class="QLabel" name="current_release_label">
             <property name="text">
              <string>None</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="release_label">
+           <widget class="QLabel" name="object_id_label">
             <property name="text">
-             <string>Release</string>
+             <string>Object Id:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="redshift_label">
+            <property name="text">
+             <string>Redshift:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="current_redshift_label">
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="ra_label">
+            <property name="text">
+             <string>RA:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="current_ra_label">
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="dec_label">
+            <property name="text">
+             <string>Dec:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="current_dec_label">
+            <property name="text">
+             <string>0</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLabel" name="current_release_label">
+           <widget class="QLabel" name="current_object_id_label">
             <property name="text">
              <string>None</string>
             </property>
@@ -165,29 +151,22 @@
          </spacer>
         </item>
         <item>
-         <layout class="QFormLayout" name="formLayout_3">
-          <property name="formAlignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         <widget class="Line" name="line_1">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-          <item row="0" column="1">
-           <widget class="QLabel" name="current_feature_label">
-            <property name="text">
-             <string>None</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="feature_label">
-            <property name="text">
-             <string>Current Feature:</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         </widget>
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="1">
+          <item row="2" column="0">
+           <widget class="QLabel" name="last_feature_label">
+            <property name="text">
+             <string>Last Feature:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
            <widget class="QLineEdit" name="feature_start_le">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -212,14 +191,49 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="feature_range_label">
+          <item row="5" column="1">
+           <widget class="QLabel" name="pew_label">
             <property name="text">
-             <string>Feature Range:</string>
+             <string>N/A</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
+          <item row="4" column="1">
+           <widget class="QLabel" name="velocity_label">
+            <property name="text">
+             <string>N/A</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLabel" name="last_feature_end_label">
+            <property name="text">
+             <string>N/A</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>PEW:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="current_feature_label">
+            <property name="text">
+             <string>N/A</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Velocity:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
            <widget class="QLineEdit" name="feature_end_le">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -241,28 +255,35 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="last_feature_label">
-            <property name="text">
-             <string>Last Feature:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
+          <item row="2" column="1">
            <widget class="QLabel" name="last_feature_start_label">
             <property name="text">
-             <string>None</string>
+             <string>N/A</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="last_feature_end_label">
+          <item row="1" column="0">
+           <widget class="QLabel" name="feature_label">
             <property name="text">
-             <string>None</string>
+             <string>Current Feature:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="feature_range_label">
+            <property name="text">
+             <string>Feature Range:</string>
             </property>
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="Line" name="line_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="notes_label">
@@ -282,21 +303,21 @@
          </widget>
         </item>
         <item>
-         <widget class="Line" name="line">
+         <widget class="Line" name="line_3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="calculate_button">
-          <property name="text">
-           <string>Calculate</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QPushButton" name="calculate_button">
+            <property name="text">
+             <string>Calculate</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QPushButton" name="save_button">
             <property name="text">

@@ -86,7 +86,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_spec_results = get_results_dataframe()
 
         # Setup tasks for the GUI
-        self.current_survey_label.setText(spectra_iter.data_release.survey_abbrev)
         self.current_release_label.setText(spectra_iter.data_release.release)
         self._init_plot_widget()
         self._connect_signals()
@@ -258,6 +257,11 @@ class MainWindow(QtWidgets.QMainWindow):
             np.std(nominal_values(area))
         ]
 
+    def reset_measurement_labels(self):
+        QApplication.processEvents()
+        self.velocity_label.setText('N/A')
+        self.pew_label.setText('N/A')
+
     ###########################################################################
     # Plotting related functions
     ###########################################################################
@@ -274,6 +278,8 @@ class MainWindow(QtWidgets.QMainWindow):
         Auto zooms the plot and repositions plot widgets to their default
         locations.
         """
+
+        self.clear_feature_fits()
 
         # Plot the binned and rest framed spectrum
         spectrum = self.current_spectrum
@@ -379,13 +385,18 @@ class MainWindow(QtWidgets.QMainWindow):
             )
 
         except SamplingRangeError:
-            err_msg = 'ERR: Feature sampling extended beyond available wavelengths.'
+            err_msg = 'Feature sampling extended beyond available wavelengths.'
             QMessageBox.about(self, 'Error', err_msg)
             self.feature_measurements = None
+            self.reset_measurement_labels()
 
         else:
             self.feature_measurements.extend(sampling_results)
-            self.feature_measurements.append(self.notes_text_edit.toPlainText())
+            velocity = np.round(sampling_results[0], 2)
+            pew = np.round(sampling_results[3], 2)
+            QApplication.processEvents()
+            self.velocity_label.setText(str(velocity))
+            self.pew_label.setText(str(pew))
 
     def save(self) -> None:
         """Logic for the ``save`` button
@@ -393,6 +404,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Save current feature measurements to internal DataFrame.
         """
 
+        self.reset_measurement_labels()
         if self.feature_measurements is None:
             QMessageBox.about(self, 'Error', 'No calculated measurements available to save.')
             return
@@ -402,6 +414,7 @@ class MainWindow(QtWidgets.QMainWindow):
         time = self.current_spectrum.time
         index = (obj_id, time, feat_name)
 
+        self.feature_measurements.append(self.notes_text_edit.toPlainText())
         self.current_spec_results.loc[index] = self.feature_measurements
         lower_bound_loc = self.current_spec_results.loc[index]['feat_start']
         upper_bound_loc = self.current_spec_results.loc[index]['feat_end']
@@ -417,7 +430,9 @@ class MainWindow(QtWidgets.QMainWindow):
         Skip inspection for the current feature
         """
 
+        self.reset_measurement_labels()
         self.clear_feature_fits()
+
         QApplication.processEvents()
         self.last_feature_start_label.setText('N/A')
         self.last_feature_end_label.setText('N/A')
@@ -429,6 +444,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Skip inspection for all features in the current spectrum
         """
 
+        self.reset_measurement_labels()
         self.clear_feature_fits()
         self.feature_iter = iter(())
         self.iterate_to_next_inspection()
