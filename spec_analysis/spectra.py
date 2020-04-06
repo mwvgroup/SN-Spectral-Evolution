@@ -6,60 +6,79 @@
 Usage Example
 -------------
 
-Working with a Spectrum
-^^^^^^^^^^^^^^^^^^^^^^^
+``Spectrum`` objects are used to represent individual spectra. In addition
+to providing the ability to measure individual features, they provided
+functionality for correcting extinction, rest framing, and binning the spectra
+(in that specific order). A handful of examples demonstrating this
+functionality is provided below:
 
-First we define a demo spectrum:
+Working with a Single Spectrum
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+First we define a demo spectrum with dummy values for wavelength, flux,
+redshift, right ascension (RA) and declination (Dec):
 
 .. code-block:: python
    :linenos:
 
    import numpy as np
-   from spec_analysis.app import run
-
+   from spec_analysis.spectra import Spectrum
+   wavelengths = np.arange(1000, 2000)
+   flux = np.random.random(len(wavelengths))
    spectrum = Spectrum(
-       wave=np.arange(1000, 2000),
-       flux=np.random.random(wave),
+       wave=wavelengths,
+       flux=flux,
        z=0.1,
        ra=0.15,
        dec=-0.2
    )
 
-By default, the following attributes are ``None``:
+Values for the rest framed and binned spectrum are stored as attributes.
+By default, these attributes are ``None``:
 
 .. code-block:: python
    :linenos:
 
    print(spectrum.rest_wave is None)  # Rest framed wavelengths
    print(spectrum.rest_flux is None)  # Rest framed, extinction corrected flux
-   print(spectrum.bin_wave is None)  # The binned wavelengths
-   print(spectrum.bin_flux is None)  # The binned fluxes
+   print(spectrum.bin_wave is None)   # The binned wavelengths
+   print(spectrum.bin_flux is None)   # The binned fluxes
 
-To correct extinction, rest frame, and bin the spectrum (in that order):
+To correct the spectrum for extinction and shift it to the rest frame, we use
+the ``correct_extinction`` method:
 
 .. code-block:: python
    :linenos:
 
-   spectrum.prepare_spectrum()
+   # Uses Schlegel+ 98 dust map and Fitzpatrick+ 99 extinction law
+   spectrum.correct_extinction()
 
-   print(spectrum.rest_wave. is None)
-   print(spectrum.rest_flux is None)
+   print(spectrum.rest_wave. is None)  # Rest framed wavelengths
+   print(spectrum.rest_flux is None)   # Rest framed, extinction corrected flux
+
+
+The rest framed spectrum can then be binned to a lower resolution using the
+``bin_spectrum`` method:
+
+.. code-block:: python
+   :linenos:
+
+   spectrum.bin_spectrum(bin_size=10, method='median')
    print(spectrum.bin_wave is None)
    print(spectrum.bin_flux is None)
 
-.. note:: The ``prepare_spectrum`` method is a convenience method that is
-   equivalent to calling the ``correct_extinction`` and ``bin_spectrum``
+.. note:: The ``prepare_spectrum`` method is available as a convenience method
+   that is equivalent to calling the ``correct_extinction`` and ``bin_spectrum``
    methods successively.
 
 Once the spectrum is prepared, you can measure it's properties for a given
 feature. This requires knowing the start / end wavelength of the feature in
-the current spectrum, and the feature's rest framed position.
+the current spectrum, and the feature's rest frame wavelength.
 
 .. code-block:: python
    :linenos:
 
    spectrum._sample_feature_properties(feat_start, feat_end, rest_frame):
-
 
 Iterating over a Data Release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

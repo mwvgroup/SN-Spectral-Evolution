@@ -37,8 +37,8 @@ Usage Example
    # Launch the graphical inspector for measuring spectral properties
    run(data_iter, './demo_results.csv', config)
 
-Documentation
--------------
+API Documentation
+-----------------
 """
 
 from PyQt5.QtWidgets import QApplication
