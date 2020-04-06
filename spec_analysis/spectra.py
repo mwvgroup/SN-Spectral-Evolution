@@ -84,10 +84,10 @@ the current spectrum, and the feature's rest frame wavelength.
 Iterating over a Data Release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``SpectraIterator`` class is used to iterate over individual spectra
-from data releases available through the ``sndata`` data access package.
-Various arguments can be specified to account for variations between the
-data products from in different surveys.
+The ``SpectraIterator`` class is used to iterate over spectra from data releases
+provided by the ``sndata`` package. Various arguments can be specified to
+account for variations in data formatting between different surveys. As an
+example, we consider the SDSS survey, which is accessed as follows:
 
 .. code-block:: python
    :linenos:
@@ -99,23 +99,52 @@ data products from in different surveys.
    data_release = Sako18Spec()
    data_release.download_module_data()
 
+   # Just so we can see the SDSS data model
+   demo_table = next(data_release.iter_data())
+   print(demo_table)
+
+The data tables from SDSS include multiple spectra, including host galaxy
+spectra and multiple observations of the supernova. We use a **pre-processing**
+function to remove the galaxy spectra, and distinguish between different
+spectra using their observation time (the ``time`` column in the data tables)
+
+.. code-block:: python
+   :linenos:
+
    # Function called to process data tables before plotting / analysis
    def pre_process(table):
+       \"""Pre-process spectral data
+
+       Args:
+           table: An astropy table with unprocessed data
+
+       Returns:
+           An astropy table with processed data
+       \"""
+
        # Remove galaxy spectra from data tables
+       # (and any other spectral data you don't want to consider)
        return table[table['type'] != 'Gal']
 
-   config_path = '/Users/daniel/Github/SN-Spectral-Evolution/app_config.yml'
-   with open(config_path) as config_reader:
-       config = yaml.safe_load(config_reader)
+   data_iter = SpectraIterator(data_release, pre_process=pre_process, group_by='time')
 
-   data_iter = SpectraIterator(data_release, pre_process=pre_process)
+If we only wanted to consider data for a subset of targets, we can specify
+those targets using their object Id.
 
 .. code-block:: python
    :linenos:
 
    obj_ids = ['722', '739', '744', '762', '774']
-   data_iter = SpectraIterator(data_release, obj_ids=obj_ids, pre_process=pre_process)
+   data_iter = SpectraIterator(
+       data_release, obj_ids=obj_ids, pre_process=pre_process, group_by='time')
 
+.. note:: The ``pre_process`` function is called **before** spectra are grouped
+   using the ``group_by`` keyword. This allows you to add a custom ``group_by``
+   value to the data tables if necessary.
+
+The ``SpectraIterator`` class expects data tables to have the ``ra``, ``dec``,
+ad ``z`` keys specified in their meta data. If those values are not available,
+they can be added in the pre-processing function.
 
 API Documentation
 -----------------
