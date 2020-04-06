@@ -3,20 +3,21 @@
 
 """The ``spectra`` module provides object representations of spectra.
 
-Usage Example
--------------
+Usage Examples
+--------------
 
 ``Spectrum`` objects are used to represent individual spectra. In addition
 to providing the ability to measure individual features, they provided
-functionality for correcting extinction, rest framing, and binning the spectra
-(in that specific order). A handful of examples demonstrating this
+functionality for correcting MW extinction, rest framing, and binning the
+spectra (in that specific order). A handful of examples demonstrating this
 functionality is provided below:
 
 Working with a Single Spectrum
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 First we define a demo spectrum with dummy values for wavelength, flux,
-redshift, right ascension (RA) and declination (Dec):
+redshift, right ascension (RA) and declination (Dec). All values are defined
+in the observer frame.
 
 .. code-block:: python
    :linenos:
@@ -53,8 +54,8 @@ the ``correct_extinction`` method:
    # Uses Schlegel+ 98 dust map and Fitzpatrick+ 99 extinction law
    spectrum.correct_extinction()
 
-   print(spectrum.rest_wave. is None)  # Rest framed wavelengths
-   print(spectrum.rest_flux is None)   # Rest framed, extinction corrected flux
+   print(spectrum.rest_wave is None)  # Rest framed wavelengths
+   print(spectrum.rest_flux is None)  # Rest framed, extinction corrected flux
 
 
 The rest framed spectrum can then be binned to a lower resolution using the
@@ -78,10 +79,43 @@ the current spectrum, and the feature's rest frame wavelength.
 .. code-block:: python
    :linenos:
 
-   spectrum._sample_feature_properties(feat_start, feat_end, rest_frame):
+   spectrum._sample_feature_properties(feat_start, feat_end, rest_frame)
 
 Iterating over a Data Release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``SpectraIterator`` class is used to iterate over individual spectra
+from data releases available through the ``sndata`` data access package.
+Various arguments can be specified to account for variations between the
+data products from in different surveys.
+
+.. code-block:: python
+   :linenos:
+
+   from sndata.sdss import Sako18Spec
+   from spec_analysis.spectra import SpectraIterator
+
+   # Make sure data is downloaded to your local machine
+   data_release = Sako18Spec()
+   data_release.download_module_data()
+
+   # Function called to process data tables before plotting / analysis
+   def pre_process(table):
+       # Remove galaxy spectra from data tables
+       return table[table['type'] != 'Gal']
+
+   config_path = '/Users/daniel/Github/SN-Spectral-Evolution/app_config.yml'
+   with open(config_path) as config_reader:
+       config = yaml.safe_load(config_reader)
+
+   data_iter = SpectraIterator(data_release, pre_process=pre_process)
+
+.. code-block:: python
+   :linenos:
+
+   obj_ids = ['722', '739', '744', '762', '774']
+   data_iter = SpectraIterator(data_release, obj_ids=obj_ids, pre_process=pre_process)
+
 
 API Documentation
 -----------------
@@ -366,6 +400,7 @@ class Spectrum:
 
 
 class SpectraIterator:
+    """Iterator over individual spectra from an ``sndata`` data release"""
 
     def __init__(self, data_release, obj_ids=None, pre_process=None, group_by='time'):
         """An iterator over individual spectra in a data release

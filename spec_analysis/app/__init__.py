@@ -4,8 +4,8 @@
 """The ``app`` module defines the objects and logic that drive the graphical
 interface.
 
-Usage Example
--------------
+Usage Examples
+--------------
 
 .. code-block:: python
    :linenos:
