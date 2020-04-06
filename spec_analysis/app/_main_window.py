@@ -15,12 +15,12 @@ from PyQt5.QtWidgets import QApplication
 
 from spec_analysis import features
 from spec_analysis.spectra import SpectraIterator
-from spec_analysis.exceptions import FeatureNotObserved
+from spec_analysis.exceptions import FeatureNotObserved, SamplingRangeError
 
 _file_dir = Path(__file__).resolve().parent
 _gui_layouts_dir = _file_dir / 'gui_layouts'
 
-# Enable antialiasing for prettier plots
+# Enable anti-aliasing for prettier plots
 pg.setConfigOptions(antialias=True)
 
 
@@ -71,17 +71,19 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         uic.loadUi(_gui_layouts_dir / 'mainwindow.ui', self)
 
-        # Store arguments
+        # Store init arguments as attributes
         self._spectra_iter = spectra_iter
         self.out_path = Path(out_path).with_suffix('.csv')
         self._config = config
         self.features = config['features']
 
-        # Set up spectra and spectral measurements
+        # Set up data frames for storing spectral measurements
+        # Separate DataFrames are used for storing all results and results
+        # for just the current spectrum being inspected
         self.tabulated_results = get_existing_data(self.out_path)
         self.current_spec_results = get_existing_data()
 
-        # Setup tasks
+        # Setup tasks for the GUI
         self.current_survey_label.setText(spectra_iter.data_release.survey_abbrev)
         self.current_release_label.setText(spectra_iter.data_release.release)
         self._init_plot_widget()
@@ -317,18 +319,26 @@ class MainWindow(QtWidgets.QMainWindow):
         lower_bound = wave[(np.abs(wave - lower_bound_loc)).argmin()]
         upper_bound = wave[(np.abs(wave - upper_bound_loc)).argmin()]
 
-        # Run the measurements
-        feature_measurements = self.current_spectrum.sample_feature_properties(
-            feat_start=lower_bound,
-            feat_end=upper_bound,
-            rest_frame=self.current_feature[1]['restframe'],
-            nstep=self._config['nstep']
-        )
-
-        # Add results to the data frame
+        # Run the measurements and add them to the data frame
         new_row = [lower_bound, upper_bound]
-        new_row.extend(feature_measurements)
-        new_row.append(self.notes_text_edit.toPlainText())
+        try:
+            feature_measurements = self.current_spectrum.sample_feature_properties(
+                feat_start=lower_bound,
+                feat_end=upper_bound,
+                rest_frame=self.current_feature[1]['restframe'],
+                nstep=self._config['nstep']
+            )
+
+        except SamplingRangeError:
+            padded_row = np.full(9, np.nan)
+            err_msg = 'ERR: Feature sampling extended beyond available wavelengths.'
+
+            new_row.extend(padded_row)
+            new_row.append(err_msg)
+
+        else:
+            new_row.extend(feature_measurements)
+            new_row.append(self.notes_text_edit.toPlainText())
 
         obj_id = self.current_spectrum.obj_id
         feat_name = self.current_feature[0]

@@ -380,7 +380,7 @@ class SpectraIterator:
                     **spectrum_data.meta  # meta should include ra, dec, and z
                 )
 
-                setattr(spectrum, self.group_by, group_by_val)
+                setattr(spectrum, self.group_by, group_by_val[0])
                 yield spectrum
 
     def __next__(self):

@@ -182,7 +182,7 @@ class ObservedFeature:
 
         except RuntimeError as excep:
             warn(str(excep))
-            return np.nan, np.nan, np.nan
+            return np.nan
 
         self.fit = gaussian(wave, depth, self.avg, stddev, offset)
         if any(eflux):
