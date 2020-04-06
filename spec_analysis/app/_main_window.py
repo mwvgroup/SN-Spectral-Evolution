@@ -76,14 +76,14 @@ class MainWindow(QtWidgets.QMainWindow):
         # Store init arguments as attributes
         self._spectra_iter = spectra_iter
         self.out_path = Path(out_path).with_suffix('.csv')
-        self._config = config
+        self.settings = config
         self.features = config['features']
 
-        # Set up data frames for storing spectral measurements. Separate
-        # DataFrames are used for storing saved results and results for
-        # just the current spectrum being inspected (i.e., unsaved results).
+        # Set up separate DataFrames / arrays for storing measurements from
+        # all saved results, the current spectrum, and the current feature.
         self.saved_results = get_results_dataframe(self.out_path)
         self.current_spec_results = get_results_dataframe()
+        self.current_feat_results = None
 
         # Setup tasks for the GUI
         self.current_release_label.setText(spectra_iter.data_release.release)
@@ -93,14 +93,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # Place holder attributes
         self.current_spectrum = None  # Spectrum object being plotted
         self.current_feature_def = None  # Current feature definition dict
-        self.feature_measurements = None  # Most recent feature measurements
         self.feature_iter = iter(())
 
         # Plot the first spectrum / feature combination for user inspection
         self.iterate_to_next_inspection()
 
     def _init_plot_widget(self) -> None:
-        """Format the plotting widget and plot dummy objects
+        """Format the plotting widget and plot place holder objects
 
         Defines the attributes:
           - ``lower_bound_line``: ``InfiniteLine``
@@ -116,17 +115,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.graph_widget.showGrid(x=True, y=True)
 
         # Create lines marking estimated start and end of a feature
+        dummy_val = 3500
         line_style = {'width': 2, 'color': 'r'}
-        self.lower_bound_line = pg.InfiniteLine([3650, 0], pen=line_style, movable=True)
-        self.upper_bound_line = pg.InfiniteLine([4000, 0], pen=line_style, movable=True)
+        self.lower_bound_line = pg.InfiniteLine(dummy_val, pen=line_style)
+        self.upper_bound_line = pg.InfiniteLine(dummy_val, pen=line_style)
         self.graph_widget.addItem(self.lower_bound_line)
         self.graph_widget.addItem(self.upper_bound_line)
         self._update_feature_bounds_le()
 
         # Create regions highlighting wavelength ranges used when estimating
         # the start and end of a feature
-        self.lower_bound_region = pg.LinearRegionItem(values=[3500, 3800], movable=False)
-        self.upper_bound_region = pg.LinearRegionItem(values=[3900, 4100], movable=False)
+        dummy_arr = [3500, 3800]
+        self.lower_bound_region = pg.LinearRegionItem(dummy_arr, movable=False)
+        self.upper_bound_region = pg.LinearRegionItem(dummy_arr, movable=False)
         self.graph_widget.addItem(self.lower_bound_region)
         self.graph_widget.addItem(self.upper_bound_region)
 
@@ -142,9 +143,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def _write_results_to_file(self):
         """Save tabulated inspection results to disk
 
-        Updates ``self.saved_results`` with values from
-        ``self.current_spec_results`` and caches the combined values to file.
-        ``self.current_spec_results`` is reset to an empty DataFrame.
+        Updates the ``saved_results`` attribute with values from
+        ``current_spec_results`` and caches the combined values to file.
+        ``current_spec_results`` is reset to an empty DataFrame.
         """
 
         if self.current_spec_results.empty:
@@ -185,7 +186,7 @@ class MainWindow(QtWidgets.QMainWindow):
             time = self.current_spectrum.time
 
         # Prepare spectrum for analysis
-        self.current_spectrum.prepare_spectrum(**self._config['prepare'])
+        self.current_spectrum.prepare_spectrum(**self.settings['prepare'])
 
         # Update the progress bar
         obj_id_list = list(self._spectra_iter.obj_ids)
@@ -258,6 +259,8 @@ class MainWindow(QtWidgets.QMainWindow):
         ]
 
     def reset_measurement_labels(self):
+        """Reset labels for measurement results to display ``N/A``"""
+
         QApplication.processEvents()
         self.velocity_label.setText('N/A')
         self.pew_label.setText('N/A')
@@ -375,23 +378,23 @@ class MainWindow(QtWidgets.QMainWindow):
         upper_bound = wave[(np.abs(wave - upper_bound_loc)).argmin()]
 
         # Run the measurements and add them to the data frame
-        self.feature_measurements = [lower_bound, upper_bound]
+        self.current_feat_results = [lower_bound, upper_bound]
         try:
             sampling_results = self._sample_feature_properties(
                 feat_start=lower_bound,
                 feat_end=upper_bound,
                 rest_frame=self.current_feature_def[1]['restframe'],
-                nstep=self._config['nstep']
+                nstep=self.settings['nstep']
             )
 
         except SamplingRangeError:
             err_msg = 'Feature sampling extended beyond available wavelengths.'
             QMessageBox.about(self, 'Error', err_msg)
-            self.feature_measurements = None
+            self.current_feat_results = None
             self.reset_measurement_labels()
 
         else:
-            self.feature_measurements.extend(sampling_results)
+            self.current_feat_results.extend(sampling_results)
             velocity = np.round(sampling_results[0], 2)
             pew = np.round(sampling_results[3], 2)
             QApplication.processEvents()
@@ -405,7 +408,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
 
         self.reset_measurement_labels()
-        if self.feature_measurements is None:
+        if self.current_feat_results is None:
             QMessageBox.about(self, 'Error', 'No calculated measurements available to save.')
             return
 
@@ -414,8 +417,8 @@ class MainWindow(QtWidgets.QMainWindow):
         time = self.current_spectrum.time
         index = (obj_id, time, feat_name)
 
-        self.feature_measurements.append(self.notes_text_edit.toPlainText())
-        self.current_spec_results.loc[index] = self.feature_measurements
+        self.current_feat_results.append(self.notes_text_edit.toPlainText())
+        self.current_spec_results.loc[index] = self.current_feat_results
         lower_bound_loc = self.current_spec_results.loc[index]['feat_start']
         upper_bound_loc = self.current_spec_results.loc[index]['feat_end']
 
