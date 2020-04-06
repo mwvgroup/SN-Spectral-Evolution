@@ -258,7 +258,7 @@ class MainWindow(QtWidgets.QMainWindow):
             np.std(nominal_values(area))
         ]
 
-    def reset_measurement_labels(self):
+    def _reset_measurement_labels(self):
         """Reset labels for measurement results to display ``N/A``"""
 
         QApplication.processEvents()
@@ -391,7 +391,7 @@ class MainWindow(QtWidgets.QMainWindow):
             err_msg = 'Feature sampling extended beyond available wavelengths.'
             QMessageBox.about(self, 'Error', err_msg)
             self.current_feat_results = None
-            self.reset_measurement_labels()
+            self._reset_measurement_labels()
 
         else:
             self.current_feat_results.extend(sampling_results)
@@ -407,7 +407,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Save current feature measurements to internal DataFrame.
         """
 
-        self.reset_measurement_labels()
+        self._reset_measurement_labels()
         if self.current_feat_results is None:
             QMessageBox.about(self, 'Error', 'No calculated measurements available to save.')
             return
@@ -433,7 +433,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Skip inspection for the current feature
         """
 
-        self.reset_measurement_labels()
+        self._reset_measurement_labels()
         self.clear_feature_fits()
 
         QApplication.processEvents()
@@ -447,7 +447,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Skip inspection for all features in the current spectrum
         """
 
-        self.reset_measurement_labels()
+        self._reset_measurement_labels()
         self.clear_feature_fits()
         self.feature_iter = iter(())
         self.iterate_to_next_inspection()

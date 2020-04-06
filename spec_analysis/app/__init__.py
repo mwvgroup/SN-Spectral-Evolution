@@ -2,7 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 """The ``app`` module defines the objects and logic that drive the graphical
-interface.
+interface. It includes dedicated classes for each application window, and a
+``run`` function for launching the GUI application.
 
 Usage Examples
 --------------
