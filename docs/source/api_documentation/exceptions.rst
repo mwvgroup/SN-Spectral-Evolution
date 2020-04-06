@@ -1,5 +1,5 @@
-Exceptions
-==========
+spec_analysis.exceptions
+========================
 
 .. automodule:: spec_analysis.exceptions
 

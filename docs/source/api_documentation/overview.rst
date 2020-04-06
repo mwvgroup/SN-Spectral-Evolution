@@ -1,4 +1,4 @@
-API Overview
-============
+spec_analysis
+=============
 
 .. automodule:: spec_analysis

@@ -1,10 +1,16 @@
 #!/usr/bin/env python3.7
 # -*- coding: UTF-8 -*-
 
-"""The ``spec_analysis`` package provides a graphical interface for measuring
-the spectroscopic properties of Type Ia Supernovae (SNe Ia). It is compatible
-with spectroscopic data releases provided by the ``sndata`` package - including
+"""The ``spec_analysis`` package provides utilities for measuring the
+spectroscopic properties of Type Ia Supernovae (SNe Ia). This includes various
+programmatic tools, in addition to a graphical interface for measuring
+individual spectral features. The package is designed to be compatible with
+spectroscopic data releases provided by the ``sndata`` package - including
 combined and custom data sets.
+
+.. important::
+   It is strongly recommended you read the :ref:`GettingStarted` section of the
+   documentation before using this package.
 """
 
 from . import app

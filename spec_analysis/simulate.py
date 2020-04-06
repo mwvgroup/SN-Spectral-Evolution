@@ -15,12 +15,20 @@ profile. For a list of available profiles, see the API Documentation.
    :linenos:
 
    import numpy as np
+   from matplotlib import pyplot as plt
    from spec_analysis.simulate import gaussian
 
    # Simulate a gaussian with a peak at 1200 wavelength units
-   mean = 1200
    wave = np.arange(1000, 2000)
-   flux, flux_err = gaussian(wave, stddev=100, amplitude=-1, mean=mean)
+   flux, flux_err = gaussian(wave, stddev=100)
+
+   # Visualize the result
+   plt.errorbar(wave, flux, yerr=flux_err, linestyle='', alpha=.5, label='Error')
+   plt.plot(wave, flux, color='k', label='Flux')
+   plt.xlabel('Wavelength')
+   plt.ylabel('Flux')
+   plt.legend()
+   plt.show()
 
 API Documentation
 -----------------
