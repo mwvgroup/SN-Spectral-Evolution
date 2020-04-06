@@ -1,17 +1,7 @@
 #!/usr/bin/env python3.7
 # -*- coding: UTF-8 -*-
 
-"""The ``exceptions`` module defines custom Python exceptions
-
-Exception Descriptions
-----------------------
-
-.. autosummary::
-  :members: FeatureNotObserved, SamplingRangeError
-
-API Documentation
------------------
-"""
+"""The ``exceptions`` module defines custom Python exceptions."""
 
 
 class FeatureNotObserved(Exception):

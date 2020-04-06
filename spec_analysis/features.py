@@ -5,24 +5,38 @@
 individual spectral features. This includes utilities for identifying the
 start end wavelengths of a feature in a spectrum.
 
-Usage Example
--------------
+Usage Examples
+--------------
 
 Estimating Feature Locations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The boundaries of absorption features are often chosen to reflect local maxima
-in measured flux values. This is particularly common when dealing with
+in the measured flux values. This is particularly common when dealing with
 astronomical objects like supernovae because their broad spectral features
-tend to neighbor each other, creating a local maximum between each feature.
-the ``find_peak_wavelength`` function can be used the position of a
-local maximum:
+tend to neighbor each other, creating a local maximum between both features.
+The ``find_peak_wavelength`` function can be used to determine the position
+(wavelength) of a local maximum:
 
 .. code-block:: python
    :linenos:
 
+   import numpy as np
+   from spec_analysis.features import find_peak_wavelength
+   from spec_analysis.simulate import gaussian
+
+   # First we simulate a gaussian with a peak at 1200 wavelength units
+   mean = 1200
+   wave = np.arange(1000, 2000)
+   flux, flux_err = gaussian(wave, stddev=100, amplitude=1, mean=mean)
+
+   # Next we recover the wavelength at maximum using ``find_peak_wavelength``
+   lower_bound, upper_bound = 1100, 1300  # Wavelength range to search in
+   peak = find_peak_wavelength(wave, flux, lower_bound, upper_bound)
+   print(mean == peak)
+
 This process can be generalized to determine the start *and* end wavelengths
-of a feature using the ``guess_feature_bounds`` function.
+(i.e., maxima) of a feature using the ``guess_feature_bounds`` function.
 
 .. code-block:: python
    :linenos:
