@@ -12,10 +12,12 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QApplication
+from uncertainties import nominal_value, std_dev
+from uncertainties.unumpy import nominal_values
 
 from spec_analysis import features
-from spec_analysis.spectra import SpectraIterator
 from spec_analysis.exceptions import FeatureNotObserved, SamplingRangeError
+from spec_analysis.spectra import SpectraIterator
 
 _file_dir = Path(__file__).resolve().parent
 _gui_layouts_dir = _file_dir / 'gui_layouts'
@@ -131,6 +133,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Establish a dummy place holder for the plotted spectrum
         dummy_wave, dummy_flux = [1, 2, 3], [4, 5, 6]
         self.spectrum_line = self.graph_widget.plot(dummy_wave, dummy_flux)
+        self.plotted_feature_fits = []
 
     def connect_signals(self) -> None:
         """Connect signals / slots of GUI widgets"""
@@ -204,6 +207,9 @@ class MainWindow(QtWidgets.QMainWindow):
         Args:
             save: Save results of the current spectrum before iterating
         """
+
+        while self.plotted_feature_fits:
+            self.plotted_feature_fits.pop().clear()
 
         if save:
             self.write_results_to_file()
@@ -305,6 +311,62 @@ class MainWindow(QtWidgets.QMainWindow):
         self.feature_iter = iter(())
         self.iterate_to_next_inspection(save=False)
 
+    def sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
+        """Calculate the properties of a single feature in a spectrum
+
+        Velocity values are returned in km / s. Error values are determined
+        both formally (summed in quadrature) and by re-sampling the feature
+        boundaries ``nstep`` flux measurements in either direction.
+
+        Args:
+            feat_start (float): Starting wavelength of the feature
+            feat_end   (float): Ending wavelength of the feature
+            rest_frame (float): Rest frame location of the specified feature
+            nstep        (int): Number of samples taken in each direction
+
+        Returns:
+            - The line velocity
+            - The formal error in velocity
+            - The sampling error in velocity
+            - The equivalent width
+            - The formal error in equivalent width
+            - The sampling error in equivalent width
+            - The feature calc_area
+            - The formal error in calc_area
+            - The sampling error in calc_area
+        """
+
+        velocity, pequiv_width, area = [], [], []
+        for feature in self.current_spectrum.iter_measured_feature(
+                feat_end, feat_start, nstep, rest_frame):
+
+            velocity.append(feature.velocity)
+            pequiv_width.append(feature.pew)
+            area.append(feature.area)
+
+            fitted_line = self.graph_widget.plot(
+                feature.wave,
+                feature.gauss_fit * feature.continuum,
+                pen={'color': 'r'})
+
+            self.plotted_feature_fits = [fitted_line]
+
+        avg_velocity = np.mean(velocity)
+        avg_ew = np.mean(pequiv_width)
+        avg_area = np.mean(area)
+
+        return [
+            nominal_value(avg_velocity),
+            std_dev(avg_velocity),
+            np.std(nominal_values(avg_velocity)),
+            nominal_value(avg_ew),
+            std_dev(avg_ew),
+            np.std(nominal_values(pequiv_width)),
+            nominal_value(avg_area),
+            std_dev(avg_area),
+            np.std(nominal_values(area))
+        ]
+
     # Todo: add option to plot intermediate results
     def save(self) -> None:
         """Logic for the ``save`` button
@@ -323,7 +385,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Run the measurements and add them to the data frame
         new_row = [lower_bound, upper_bound]
         try:
-            feature_measurements = self.current_spectrum.sample_feature_properties(
+            feature_measurements = self.sample_feature_properties(
                 feat_start=lower_bound,
                 feat_end=upper_bound,
                 rest_frame=self.current_feature[1]['restframe'],

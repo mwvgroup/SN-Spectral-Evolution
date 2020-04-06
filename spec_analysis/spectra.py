@@ -57,9 +57,9 @@ Documentation
 -------------
 """
 
+import extinction
 from pathlib import Path
 
-import extinction
 import numpy as np
 import scipy
 import sfdmap
@@ -247,6 +247,46 @@ class Spectrum:
         self.correct_extinction(rv=rv)
         self.bin_spectrum(bin_size=bin_size, bin_method=bin_method.lower())
 
+    def iter_measured_feature(self, feat_end, feat_start, nstep, rest_frame):
+        """Calculate the properties of a single feature in a spectrum
+
+        Args:
+            feat_start (float): Starting wavelength of the feature
+            feat_end   (float): Ending wavelength of the feature
+            rest_frame (float): Rest frame location of the specified feature
+            nstep        (int): Number of samples taken in each direction
+
+        Yields:
+            An ``ObservedFeature`` with sampled properties
+        """
+
+        # Get indices for beginning and end of the feature
+        idx_start = np.where(self.bin_wave == feat_start)[0][0]
+        idx_end = np.where(self.bin_wave == feat_end)[0][0]
+        if idx_end - idx_start <= 10:
+            raise ValueError('Range too small. Please select a wider range')
+
+        # We vary the beginning and end of the feature to estimate the error
+
+        for i in np.arange(-nstep, nstep + 1):
+            for j in np.arange(nstep, -nstep - 1, -1):
+                # Get sub-sampled wavelength/flux
+                sample_start_idx = idx_start + i
+                sample_end_idx = idx_end + j
+
+                if sample_start_idx < 0 or sample_end_idx >= len(self.bin_wave):
+                    raise SamplingRangeError
+
+                nw = self.bin_wave[sample_start_idx: sample_end_idx]
+                nf = self.bin_flux[sample_start_idx: sample_end_idx]
+
+                # Determine feature properties
+                feature = ObservedFeature(nw, nf)
+                feature.calc_pew()
+                feature.calc_area()
+                feature.calc_velocity(rest_frame)
+                yield feature
+
     def sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
         """Calculate the properties of a single feature in a spectrum
 
@@ -255,10 +295,10 @@ class Spectrum:
         boundaries ``nstep`` flux measurements in either direction.
 
         Args:
-            feat_start     (float): Starting wavelength of the feature
-            feat_end       (float): Ending wavelength of the feature
-            rest_frame     (float): Rest frame location of the specified feature
-            nstep            (int): Number of samples taken in each direction
+            feat_start (float): Starting wavelength of the feature
+            feat_end   (float): Ending wavelength of the feature
+            rest_frame (float): Rest frame location of the specified feature
+            nstep        (int): Number of samples taken in each direction
 
         Returns:
             - The line velocity
@@ -272,35 +312,11 @@ class Spectrum:
             - The sampling error in calc_area
         """
 
-        # Get indices for beginning and end of the feature
-        idx_start = np.where(self.bin_wave == feat_start)[0][0]
-        idx_end = np.where(self.bin_wave == feat_end)[0][0]
-        if idx_end - idx_start <= 10:
-            raise ValueError('Range too small. Please select a wider range')
-
-        # We vary the beginning and end of the feature to estimate the error
         velocity, pequiv_width, area = [], [], []
-        for i in np.arange(-nstep, nstep + 1):
-            for j in np.arange(nstep, -nstep - 1, -1):
-                # Get sub-sampled wavelength/flux
-                sample_start_idx = idx_start + i
-                sample_end_idx = idx_end + j
-
-                if sample_start_idx < 0 or sample_end_idx >= len(self.bin_wave):
-                    raise SamplingRangeError
-
-                nw = self.bin_wave[sample_start_idx: sample_end_idx]
-                nf = self.bin_flux[sample_start_idx: sample_end_idx]
-
-                feature = ObservedFeature(nw, nf)
-
-                # Determine feature properties
-                area.append(feature.calc_area())
-                continuum, norm_flux, pew = feature.calc_pew()
-                pequiv_width.append(pew)
-
-                vel = feature.calc_velocity(rest_frame)
-                velocity.append(vel)
+        for feature in self.iter_measured_feature(feat_end, feat_start, nstep, rest_frame):
+            velocity.append(feature.velocity)
+            pequiv_width.append(feature.pew)
+            area.append(feature.area)
 
         avg_velocity = np.mean(velocity)
         avg_ew = np.mean(pequiv_width)
