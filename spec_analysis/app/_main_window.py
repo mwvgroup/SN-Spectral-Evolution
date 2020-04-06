@@ -77,10 +77,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self._config = config
         self.features = config['features']
 
-        # Set up data frames for storing spectral measurements
-        # Separate DataFrames are used for storing all results and results
-        # for just the current spectrum being inspected
-        self.tabulated_results = get_existing_data(self.out_path)
+        # Set up data frames for storing spectral measurements. Separate
+        # DataFrames are used for storing saved results and results for
+        # just the current spectrum being inspected (i.e., unsaved results).
+        self.saved_results = get_existing_data(self.out_path)
         self.current_spec_results = get_existing_data()
 
         # Setup tasks for the GUI
@@ -156,7 +156,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionReset_Plot.triggered.connect(self.reset_plot)
 
     def reset_plot(self) -> None:
-        """Refresh the plot to reflect the current spectrum and feature"""
+        """Reset the plot to reflect the current spectrum and feature"""
 
         # Plot the binned and rest framed spectrum
         spectrum = self.current_spectrum
@@ -196,9 +196,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def _iterate_to_next_spectrum(self, save=True) -> None:
         """Set self.current_spectrum to the next spectrum
 
-        Skip any spectra that already have tabulated results. Reset labels for
-        the start/end positions of the previous feature. Does not refresh the
-        plot.
+        Skips any spectra that already have tabulated results.
+        Calls the ``prepare_spectrum`` method of the spectrum.
+        Resets labels for the start/end positions of the previous feature.
+        Does not refresh the plot.
 
         Args:
             save: Save results of the current spectrum before iterating
@@ -213,8 +214,8 @@ class MainWindow(QtWidgets.QMainWindow):
         time = self.current_spectrum.time
 
         # Skip over spectrum if it has already been inspected
-        existing_obj_id = self.tabulated_results.index.get_level_values('obj_id')
-        existing_times = self.tabulated_results.index.get_level_values('time')
+        existing_obj_id = self.saved_results.index.get_level_values('obj_id')
+        existing_times = self.saved_results.index.get_level_values('time')
         while (obj_id in existing_obj_id) and (time in existing_times):
             self.current_spectrum = next(self._spectra_iter)
             obj_id = self.current_spectrum.obj_id
@@ -237,7 +238,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def iterate_to_next_inspection(self, save=True) -> None:
         """Update the plot to depict the next feature
 
-        If the last (i.e., reddest) feature is currently being plotted, move
+        If the last (i.e., reddest) feature is currently being plotted move
         to the next spectrum and plot the first feature. If a feature does not
         overlap the observed wavelength range, move to the next feature.
 
@@ -356,9 +357,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.current_spec_results.empty:
             return
 
-        self.tabulated_results = pd.concat(
-            [self.tabulated_results, self.current_spec_results]
+        self.saved_results = pd.concat(
+            [self.saved_results, self.current_spec_results]
         )
 
         self.current_spec_results = get_existing_data()
-        self.tabulated_results.to_csv(self.out_path)
+        self.saved_results.to_csv(self.out_path)
