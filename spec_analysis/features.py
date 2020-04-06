@@ -22,6 +22,7 @@ The ``find_peak_wavelength`` function can be used to determine the position
    :linenos:
 
    import numpy as np
+   from matplotlib import pyplot as plt
    from spec_analysis.features import find_peak_wavelength
    from spec_analysis.simulate import gaussian
 
@@ -30,16 +31,51 @@ The ``find_peak_wavelength`` function can be used to determine the position
    wave = np.arange(1000, 2000)
    flux, flux_err = gaussian(wave, stddev=100, amplitude=1, mean=mean)
 
-   # Next we recover the wavelength at maximum using ``find_peak_wavelength``
-   lower_bound, upper_bound = 1100, 1300  # Wavelength range to search in
-   peak = find_peak_wavelength(wave, flux, lower_bound, upper_bound)
-   print(mean == peak)
+   # Next we define the feature parameters
+
+
+   # Visualize the result
+   plt.plot(wave, flux, label='Flux')
+   plt.axvline(peak, color='k', label='Recovered peak')
+   plt.xlabel('Wavelength')
+   plt.ylabel('Flux')
+   plt.legend()
+   plt.show()
 
 This process can be generalized to determine the start **and** end wavelengths
 (i.e., maxima) of a feature using the ``guess_feature_bounds`` function.
 
 .. code-block:: python
    :linenos:
+
+   from spec_analysis.features import guess_feature_bounds
+
+   # First we simulate simulate a feature using two super-imposed Gaussians
+   wave = np.arange(1000, 2000)
+   mean1, mean2 = 1200, 1800
+   flux1, flux_err1 = gaussian(wave, stddev=100, amplitude=1, mean=mean1)
+   flux2, flux_err2 = gaussian(wave, stddev=100, amplitude=1, mean=mean2)
+   flux = flux1 + flux2
+
+   # Next we define the wavelength ranges to search for boundaries
+   bounds = {
+       'lower_blue': 1000,
+       'upper_blue': 1400,
+       'lower_red': 1600,
+       'upper_red': 2000
+   }
+
+   # Finally we find the feature bounds
+   feat_start, feat_end = guess_feature_bounds(wave, flux, bounds)
+
+   # Visualize the result
+   plt.plot(wave, flux, label='Flux', color='C0')
+   plt.axvline(feat_start, color='C1', label='Feature start')
+   plt.axvline(feat_end, color='C2', label='Feature End')
+   plt.xlabel('Wavelength')
+   plt.ylabel('Flux')
+   plt.legend()
+   plt.show()
 
 Measuring a Feature
 ^^^^^^^^^^^^^^^^^^^
