@@ -117,8 +117,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create lines marking estimated start and end of a feature
         dummy_val = 3500
         line_style = {'width': 2, 'color': 'r'}
-        self.lower_bound_line = pg.InfiniteLine(dummy_val, pen=line_style)
-        self.upper_bound_line = pg.InfiniteLine(dummy_val, pen=line_style)
+        self.lower_bound_line = pg.InfiniteLine(dummy_val, pen=line_style, movable=True)
+        self.upper_bound_line = pg.InfiniteLine(dummy_val, pen=line_style, movable=True)
         self.graph_widget.addItem(self.lower_bound_line)
         self.graph_widget.addItem(self.upper_bound_line)
         self._update_feature_bounds_le()
