@@ -58,7 +58,7 @@ the current spectrum, and the feature's rest framed position.
 .. code-block:: python
    :linenos:
 
-   spectrum.sample_feature_properties(feat_start, feat_end, rest_frame):
+   spectrum._sample_feature_properties(feat_start, feat_end, rest_frame):
 
 
 Iterating over a Data Release

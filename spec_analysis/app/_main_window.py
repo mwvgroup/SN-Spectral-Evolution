@@ -11,7 +11,7 @@ import pyqtgraph as pg
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMessageBox
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
@@ -26,7 +26,7 @@ _gui_layouts_dir = _file_dir / 'gui_layouts'
 pg.setConfigOptions(antialias=True)
 
 
-def get_existing_data(out_path: Path = None) -> pd.DataFrame:
+def get_results_dataframe(out_path: Path = None) -> pd.DataFrame:
     """Create an empty pandas dataframe
 
     Returns:
@@ -52,6 +52,15 @@ def get_existing_data(out_path: Path = None) -> pd.DataFrame:
     col_names.append('msg')
     df = pd.DataFrame(columns=col_names)
     return df.set_index(['obj_id', 'time', 'feat_name'])
+
+def alert_message(title, message):
+
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Information)
+
+    msg.setText(message)
+    msg.setWindowTitle(title)
+    msg.setStandardButtons(QMessageBox.Ok)
 
 
 # Note: When update labels in the GUI we call ``QApplication.processEvents()``
@@ -82,22 +91,23 @@ class MainWindow(QtWidgets.QMainWindow):
         # Set up data frames for storing spectral measurements. Separate
         # DataFrames are used for storing saved results and results for
         # just the current spectrum being inspected (i.e., unsaved results).
-        self.saved_results = get_existing_data(self.out_path)
-        self.current_spec_results = get_existing_data()
+        self.saved_results = get_results_dataframe(self.out_path)
+        self.current_spec_results = get_results_dataframe()
 
         # Setup tasks for the GUI
         self.current_survey_label.setText(spectra_iter.data_release.survey_abbrev)
         self.current_release_label.setText(spectra_iter.data_release.release)
         self._init_plot_widget()
-        self.connect_signals()
+        self._connect_signals()
 
         # Place holder attributes
-        self.current_spectrum = None
-        self.current_feature = None
+        self.current_spectrum = None  # Spectrum object being plotted
+        self.current_feature = None  # Feature definition
+        self.feature_measurements = None  # Most recent feature measurements
         self.feature_iter = iter(())
 
         # Plot the first spectrum / feature combination for user inspection
-        self.iterate_to_next_inspection()
+        self._iterate_to_next_inspection()
 
     def _init_plot_widget(self) -> None:
         """Format the plotting widget and plot dummy objects
@@ -121,7 +131,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.upper_bound_line = pg.InfiniteLine([4000, 0], pen=line_style, movable=True)
         self.graph_widget.addItem(self.lower_bound_line)
         self.graph_widget.addItem(self.upper_bound_line)
-        self.update_feature_bounds_le()
+        self._update_feature_bounds_le()
 
         # Create regions highlighting wavelength ranges used when estimating
         # the start and end of a feature
@@ -135,31 +145,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.spectrum_line = self.graph_widget.plot(dummy_wave, dummy_flux)
         self.plotted_feature_fits = []
 
-    def connect_signals(self) -> None:
-        """Connect signals / slots of GUI widgets"""
+    ###########################################################################
+    # Data handling and measurement tabulation
+    ###########################################################################
 
-        # Connect the run_sako18spec submission buttons
-        self.save_button.clicked.connect(self.save)
-        self.skip_button.clicked.connect(self.skip)
-        self.skip_all_button.clicked.connect(self.skip_all)
+    def clear_feature_fits(self):
+        """Clear any plotted feature fits from the plot"""
 
-        # Only allow numbers in text boxes
-        reg_ex = QRegExp(r"([0-9]+)|([0-9]+\.)|([0-9]+\.[0-9]+)")
-        input_validator = QRegExpValidator(reg_ex)
-        self.feature_start_le.setValidator(input_validator)
-        self.feature_end_le.setValidator(input_validator)
-
-        # Connect plotted feature boundaries to boundary line entries
-        self.lower_bound_line.sigPositionChangeFinished.connect(self.update_feature_bounds_le)
-        self.upper_bound_line.sigPositionChangeFinished.connect(self.update_feature_bounds_le)
-        self.feature_start_le.editingFinished.connect(self.update_feature_bounds_plot)
-        self.feature_end_le.editingFinished.connect(self.update_feature_bounds_plot)
-
-        # Menu bar
-        self.actionReset_Plot.triggered.connect(self.reset_plot)
+        while self.plotted_feature_fits:
+            self.plotted_feature_fits.pop().clear()
 
     def reset_plot(self) -> None:
-        """Reset the plot to reflect the current spectrum and feature"""
+        """Reset the plot to display the current spectrum with default settings
+
+        Auto zooms the plot and repositions plot widgets to their default
+        locations.
+        """
 
         # Plot the binned and rest framed spectrum
         spectrum = self.current_spectrum
@@ -184,7 +185,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.upper_bound_line.setValue(upper_bound)
         self.lower_bound_region.setRegion(lower_range)
         self.upper_bound_region.setRegion(upper_range)
-        self.update_feature_bounds_le()
+        self._update_feature_bounds_le()
 
         # Update appropriate GUI labels
         QApplication.processEvents()
@@ -196,23 +197,30 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.graph_widget.autoRange()
 
-    def _iterate_to_next_spectrum(self, save=True) -> None:
-        """Set self.current_spectrum to the next spectrum
+    def _write_results_to_file(self):
+        """Save tabulated inspection results to disk"""
+
+        if self.current_spec_results.empty:
+            return
+
+        self.saved_results = pd.concat(
+            [self.saved_results, self.current_spec_results]
+        )
+
+        self.current_spec_results = get_results_dataframe()
+        self.saved_results.to_csv(self.out_path)
+
+    def _iterate_to_next_spectrum(self) -> None:
+        """Set self.current_spectrum to the next spectrum and reset the plot
 
         Skips any spectra that already have tabulated results.
         Calls the ``prepare_spectrum`` method of the spectrum.
-        Resets labels for the start/end positions of the previous feature.
-        Does not refresh the plot.
-
-        Args:
-            save: Save results of the current spectrum before iterating
         """
 
-        while self.plotted_feature_fits:
-            self.plotted_feature_fits.pop().clear()
+        self.clear_feature_fits()
 
-        if save:
-            self.write_results_to_file()
+        # Save any results for the current spectrum
+        self._write_results_to_file()
 
         # Get next spectrum for inspection
         self.current_spectrum = next(self._spectra_iter)
@@ -241,7 +249,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_feature_start_label.setText('N/A')
         self.last_feature_end_label.setText('N/A')
 
-    def iterate_to_next_inspection(self, save=True) -> None:
+    def _iterate_to_next_inspection(self) -> None:
         """Update the plot to depict the next feature
 
         If the last (i.e., reddest) feature is currently being plotted move
@@ -260,7 +268,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # On the last feature, move to the next spectrum and start over
             except StopIteration:
-                self._iterate_to_next_spectrum(save=save)
+                self._iterate_to_next_spectrum()
                 self.feature_iter = iter(self.features.items())
                 self.current_feature = next(self.feature_iter)
 
@@ -279,39 +287,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.reset_plot()
 
-    def update_feature_bounds_le(self, *args) -> None:
-        """Update the location of plotted feature bounds to match line edits"""
-
-        self.feature_start_le.setText(str(self.lower_bound_line.value()))
-        self.feature_end_le.setText(str(self.upper_bound_line.value()))
-
-    def update_feature_bounds_plot(self, *args) -> None:
-        """Update line edits to match the location of plotted feature bounds"""
-
-        self.lower_bound_line.setValue(float(self.feature_start_le.text()))
-        self.upper_bound_line.setValue(float(self.feature_end_le.text()))
-
-    def skip(self) -> None:
-        """Logic for the ``skip`` button
-
-        Skip inspection for the current feature
-        """
-
-        QApplication.processEvents()
-        self.last_feature_start_label.setText('N/A')
-        self.last_feature_end_label.setText('N/A')
-        self.iterate_to_next_inspection()
-
-    def skip_all(self) -> None:
-        """Logic for the ``skip_all_button``
-
-        Skip inspection for all features in the current spectrum
-        """
-
-        self.feature_iter = iter(())
-        self.iterate_to_next_inspection(save=False)
-
-    def sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
+    def _sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
         """Calculate the properties of a single feature in a spectrum
 
         Velocity values are returned in km / s. Error values are determined
@@ -339,7 +315,6 @@ class MainWindow(QtWidgets.QMainWindow):
         velocity, pequiv_width, area = [], [], []
         for feature in self.current_spectrum.iter_measured_feature(
                 feat_end, feat_start, nstep, rest_frame):
-
             velocity.append(feature.velocity)
             pequiv_width.append(feature.pew)
             area.append(feature.area)
@@ -349,7 +324,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 feature.gauss_fit * feature.continuum,
                 pen={'color': 'r'})
 
-            self.plotted_feature_fits = [fitted_line]
+            self.plotted_feature_fits.append(fitted_line)
 
         avg_velocity = np.mean(velocity)
         avg_ew = np.mean(pequiv_width)
@@ -367,13 +342,14 @@ class MainWindow(QtWidgets.QMainWindow):
             np.std(nominal_values(area))
         ]
 
-    # Todo: add option to plot intermediate results
-    def save(self) -> None:
-        """Logic for the ``save`` button
+    ###########################################################################
+    # Signals and slots for GUI elements
+    ###########################################################################
 
-        Measure the current spectral feature and save results
-        """
+    def calculate(self):
+        """Logic for the ``calculate`` button"""
 
+        self.clear_feature_fits()
         lower_bound_loc = self.lower_bound_line.value()
         upper_bound_loc = self.upper_bound_line.value()
 
@@ -383,9 +359,9 @@ class MainWindow(QtWidgets.QMainWindow):
         upper_bound = wave[(np.abs(wave - upper_bound_loc)).argmin()]
 
         # Run the measurements and add them to the data frame
-        new_row = [lower_bound, upper_bound]
+        self.feature_measurements = [lower_bound, upper_bound]
         try:
-            feature_measurements = self.sample_feature_properties(
+            feature_measurements = self._sample_feature_properties(
                 feat_start=lower_bound,
                 feat_end=upper_bound,
                 rest_frame=self.current_feature[1]['restframe'],
@@ -396,32 +372,87 @@ class MainWindow(QtWidgets.QMainWindow):
             padded_row = np.full(9, np.nan)
             err_msg = 'ERR: Feature sampling extended beyond available wavelengths.'
 
-            new_row.extend(padded_row)
-            new_row.append(err_msg)
+            self.feature_measurements.extend(padded_row)
+            self.feature_measurements.append(err_msg)
 
         else:
-            new_row.extend(feature_measurements)
-            new_row.append(self.notes_text_edit.toPlainText())
+            self.feature_measurements.extend(feature_measurements)
+            self.feature_measurements.append(self.notes_text_edit.toPlainText())
+
+    def save(self) -> None:
+        """Logic for the ``save`` button
+
+        Measure the current spectral feature and save results
+        """
 
         obj_id = self.current_spectrum.obj_id
         feat_name = self.current_feature[0]
         time = self.current_spectrum.time
-        self.current_spec_results.loc[(obj_id, time, feat_name)] = new_row
+        index = (obj_id, time, feat_name)
+
+        self.current_spec_results.loc[index] = self.feature_measurements
+        lower_bound_loc = self.current_spec_results.loc[index]['feat_start']
+        upper_bound_loc = self.current_spec_results.loc[index]['feat_end']
 
         QApplication.processEvents()
         self.last_feature_start_label.setText(str(lower_bound_loc))
         self.last_feature_end_label.setText(str(upper_bound_loc))
-        self.iterate_to_next_inspection()
+        self._iterate_to_next_inspection()
 
-    def write_results_to_file(self):
-        """Save tabulated inspection results to disk"""
+    def skip(self) -> None:
+        """Logic for the ``skip`` button
 
-        if self.current_spec_results.empty:
-            return
+        Skip inspection for the current feature
+        """
 
-        self.saved_results = pd.concat(
-            [self.saved_results, self.current_spec_results]
-        )
+        self.clear_feature_fits()
+        QApplication.processEvents()
+        self.last_feature_start_label.setText('N/A')
+        self.last_feature_end_label.setText('N/A')
+        self._iterate_to_next_inspection()
 
-        self.current_spec_results = get_existing_data()
-        self.saved_results.to_csv(self.out_path)
+    def skip_all(self) -> None:
+        """Logic for the ``skip_all_button``
+
+        Skip inspection for all features in the current spectrum
+        """
+
+        self.clear_feature_fits()
+        self.feature_iter = iter(())
+        self._iterate_to_next_inspection()
+
+    def _update_feature_bounds_le(self, *args) -> None:
+        """Update the location of plotted feature bounds to match line edits"""
+
+        self.feature_start_le.setText(str(self.lower_bound_line.value()))
+        self.feature_end_le.setText(str(self.upper_bound_line.value()))
+
+    def _update_feature_bounds_plot(self, *args) -> None:
+        """Update line edits to match the location of plotted feature bounds"""
+
+        self.lower_bound_line.setValue(float(self.feature_start_le.text()))
+        self.upper_bound_line.setValue(float(self.feature_end_le.text()))
+
+    def _connect_signals(self) -> None:
+        """Connect signals / slots of GUI widgets"""
+
+        # Connect the buttons
+        self.calculate_button.clicked.connect(self.calculate)
+        self.save_button.clicked.connect(self.save)
+        self.skip_button.clicked.connect(self.skip)
+        self.skip_all_button.clicked.connect(self.skip_all)
+
+        # Only allow numbers in text boxes
+        reg_ex = QRegExp(r"([0-9]+)|([0-9]+\.)|([0-9]+\.[0-9]+)")
+        input_validator = QRegExpValidator(reg_ex)
+        self.feature_start_le.setValidator(input_validator)
+        self.feature_end_le.setValidator(input_validator)
+
+        # Connect plotted feature boundaries to boundary line entries
+        self.lower_bound_line.sigPositionChangeFinished.connect(self._update_feature_bounds_le)
+        self.upper_bound_line.sigPositionChangeFinished.connect(self._update_feature_bounds_le)
+        self.feature_start_le.editingFinished.connect(self._update_feature_bounds_plot)
+        self.feature_end_le.editingFinished.connect(self._update_feature_bounds_plot)
+
+        # Menu bar
+        self.actionReset_Plot.triggered.connect(self.reset_plot)
