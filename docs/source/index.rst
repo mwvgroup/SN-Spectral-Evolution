@@ -47,8 +47,6 @@ the literature and .
 
    project_notes/data
    project_notes/relevant_literature
-   project_notes/classification_schemes
-
 
 .. toctree::
    :hidden:

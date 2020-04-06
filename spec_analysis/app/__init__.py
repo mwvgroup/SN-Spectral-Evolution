@@ -8,6 +8,8 @@ interface. It includes dedicated classes for each application window, and a
 Usage Examples
 --------------
 
+.. error:: TODO: Change this out for a simpler, more direct example.
+
 .. code-block:: python
    :linenos:
 

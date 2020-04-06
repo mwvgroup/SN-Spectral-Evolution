@@ -9,8 +9,9 @@ Include Ia spectra only.
 import sys
 
 import yaml
-from sndata.csp import DR1
+from sndata.csp import DR1, DR3
 from sndata.sdss import Sako18Spec
+from sndata.utils import hourangle_to_degrees
 
 from spec_analysis.app import run
 from spec_analysis.spectra import SpectraIterator
@@ -23,11 +24,30 @@ def create_csp_data_iter():
         Spectra as a ``SpectraIterator`` object
     """
 
-    # Make sure data is downloaded to the local machine
-    data_release = DR1()
-    data_release.download_module_data()
+    dr1 = DR1()
+    dr3 = DR3()
 
-    return SpectraIterator(data_release)
+    # Make sure data is downloaded to the local machine
+    dr1.download_module_data()
+    dr3.download_module_data()
+
+    csp_ra_dec_df = dr3.load_table(1).to_pandas(index='SN')
+
+    def pre_process(table):
+        obj_id = table.meta['obj_id']
+
+        # Get ra and dec from CSP DR3
+        ra_dec_col_names = ['RAh', 'RAm', 'RAs', 'DE-', 'DEd', 'DEm', 'DEs']
+        object_data = csp_ra_dec_df.loc[obj_id][ra_dec_col_names]
+        ra, dec = hourangle_to_degrees(*object_data)
+
+        table.meta['ra'] = ra
+        table.meta['dec'] = dec
+
+        table['wavelength'] *= 1 + table.meta['z']
+        return table
+
+    return SpectraIterator(dr1, pre_process=pre_process)
 
 
 def create_sdss_data_iter():
@@ -72,12 +92,12 @@ def create_data_iter(survey):
     raise ValueError(f'Unknown survey {survey}')
 
 
-def main(config_path, survey, out_path):
+def main(survey, config_path, out_path):
     """Load setting and launch the GUI
 
     Args:
-        config_path (str): Path of the config file
         survey      (str): The name of the survey
+        config_path (str): Path of the config file
         out_path    (str): Path of output csv
     """
 

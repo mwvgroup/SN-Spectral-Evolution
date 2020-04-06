@@ -7,10 +7,6 @@ programmatic tools, in addition to a graphical interface for measuring
 individual spectral features. The package is designed to be compatible with
 spectroscopic data releases provided by the ``sndata`` package - including
 combined and custom data sets.
-
-.. important::
-   It is strongly recommended you read the :ref:`GettingStarted` section of the
-   documentation before using this package.
 """
 
 from . import app
