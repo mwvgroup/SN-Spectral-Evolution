@@ -65,8 +65,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         Args:
             spectra_iter (SpectraIterator): Iterator over the data to measure
-            out_path  (str): Name of CSV file where results are saved
-            config   (dict): Application config settings
+            out_path                 (str): Name of CSV file where results are saved
+            config                  (dict): Application config settings
         """
 
         # noinspection PyArgumentList
@@ -98,7 +98,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Plot the first spectrum / feature combination for user inspection
         self.iterate_to_next_inspection()
 
-    def _init_plot_widget(self) -> None:
+    def _init_plot_widget(self):
         """Format the plotting widget and plot place holder objects
 
         Defines the attributes:
@@ -158,7 +158,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_spec_results = get_results_dataframe()
         self.saved_results.to_csv(self.out_path)
 
-    def _iterate_to_next_spectrum(self) -> None:
+    def _iterate_to_next_spectrum(self):
         """Set self.current_spectrum to the next spectrum
 
         Skips any spectra that already have tabulated results.
@@ -275,7 +275,7 @@ class MainWindow(QtWidgets.QMainWindow):
         while self.plotted_feature_fits:
             self.plotted_feature_fits.pop().clear()
 
-    def reset_plot(self) -> None:
+    def reset_plot(self):
         """Reset the plot to display the current spectrum with default settings
 
         Auto zooms the plot and repositions plot widgets to their default
@@ -319,7 +319,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.graph_widget.autoRange()
 
-    def iterate_to_next_inspection(self) -> None:
+    def iterate_to_next_inspection(self):
         """Update the plot to depict the next feature
 
         If the last (i.e., reddest) feature is currently being plotted move
@@ -401,7 +401,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.velocity_label.setText(str(velocity))
             self.pew_label.setText(str(pew))
 
-    def save(self) -> None:
+    def save(self):
         """Logic for the ``save`` button
 
         Save current feature measurements to internal DataFrame.
@@ -427,7 +427,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_feature_end_label.setText(str(upper_bound_loc))
         self.iterate_to_next_inspection()
 
-    def skip(self) -> None:
+    def skip(self):
         """Logic for the ``skip`` button
 
         Skip inspection for the current feature
@@ -441,7 +441,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_feature_end_label.setText('N/A')
         self.iterate_to_next_inspection()
 
-    def skip_all(self) -> None:
+    def skip_all(self):
         """Logic for the ``skip_all_button``
 
         Skip inspection for all features in the current spectrum
@@ -452,19 +452,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.feature_iter = iter(())
         self.iterate_to_next_inspection()
 
-    def _update_feature_bounds_le(self, *args) -> None:
+    def _update_feature_bounds_le(self, *args):
         """Update the location of plotted feature bounds to match line edits"""
 
         self.feature_start_le.setText(str(self.lower_bound_line.value()))
         self.feature_end_le.setText(str(self.upper_bound_line.value()))
 
-    def _update_feature_bounds_plot(self, *args) -> None:
+    def _update_feature_bounds_plot(self, *args):
         """Update line edits to match the location of plotted feature bounds"""
 
         self.lower_bound_line.setValue(float(self.feature_start_le.text()))
         self.upper_bound_line.setValue(float(self.feature_end_le.text()))
 
-    def _connect_signals(self) -> None:
+    def _connect_signals(self):
         """Connect signals / slots of GUI widgets"""
 
         # Connect the buttons
