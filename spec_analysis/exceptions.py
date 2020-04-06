@@ -3,21 +3,14 @@
 
 """The ``exceptions`` module defines custom Python exceptions
 
-Usage Example:
+Exception Descriptions
+----------------------
 
-.. code-block:: python
-   :linenos:
+.. autosummary::
+  :members: FeatureNotObserved, SamplingRangeError
 
-   from spec_analysis.exceptions import FeatureOutOfBounds
-
-   try:
-       raise FeatureOutOfBounds('Some descriptive error message')
-
-   except FeatureOutOfBounds:
-       print('Your error was successfully raised!)
-
-Documentation
--------------
+API Documentation
+-----------------
 """
 
 

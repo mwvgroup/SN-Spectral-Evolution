@@ -6,6 +6,9 @@
 Usage Example
 -------------
 
+Working with a Spectrum
+^^^^^^^^^^^^^^^^^^^^^^^
+
 First we define a demo spectrum:
 
 .. code-block:: python
@@ -44,6 +47,10 @@ To correct extinction, rest frame, and bin the spectrum (in that order):
    print(spectrum.bin_wave is None)
    print(spectrum.bin_flux is None)
 
+.. note:: The ``prepare_spectrum`` method is a convenience method that is
+   equivalent to calling the ``correct_extinction`` and ``bin_spectrum``
+   methods successively.
+
 Once the spectrum is prepared, you can measure it's properties for a given
 feature. This requires knowing the start / end wavelength of the feature in
 the current spectrum, and the feature's rest framed position.
@@ -53,8 +60,12 @@ the current spectrum, and the feature's rest framed position.
 
    spectrum.sample_feature_properties(feat_start, feat_end, rest_frame):
 
-Documentation
--------------
+
+Iterating over a Data Release
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+API Documentation
+-----------------
 """
 
 import extinction

@@ -1,8 +1,55 @@
 # !/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""The ``features`` module provides logic for measuring the properties of an
-individual spectral feature.
+"""The ``features`` module provides logic for measuring the properties of
+individual spectral features. This includes utilities for identifying the
+start end wavelengths of a feature in a spectrum.
+
+Usage Example
+-------------
+
+Estimating Feature Locations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The boundaries of absorption features are often chosen to reflect local maxima
+in measured flux values. This is particularly common when dealing with
+astronomical objects like supernovae because their broad spectral features
+tend to neighbor each other, creating a local maximum between each feature.
+the ``find_peak_wavelength`` function can be used the position of a
+local maximum:
+
+.. code-block:: python
+   :linenos:
+
+This process can be generalized to determine the start *and* end wavelengths
+of a feature using the ``guess_feature_bounds`` function.
+
+.. code-block:: python
+   :linenos:
+
+Measuring a Feature
+^^^^^^^^^^^^^^^^^^^
+
+The wavelengths and flux values for individual features are represented by the
+``ObservedFeature`` class. Included in this class are methods for calculating
+the area, pseudo equivalent width (PEW), and flux of the feature.
+
+.. code-block:: python
+   :linenos:
+
+Note that the velocity is determined by fitting an inverted Gaussian of the
+form
+
+$$$$
+
+Various attributes are used to store the intermediate results of these
+calculations. For example:
+
+.. code-block:: python
+   :linenos:
+
+API Documentation
+-----------------
 """
 
 from warnings import warn
