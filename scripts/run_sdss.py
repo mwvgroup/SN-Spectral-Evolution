@@ -7,6 +7,10 @@ Include Ia spectra only.
 """
 
 import sys
+from pathlib import Path
+
+# Add GUI to python path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yaml
 from sndata.sdss import Sako18Spec
