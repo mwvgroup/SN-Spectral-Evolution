@@ -34,7 +34,7 @@ extensions = [
 
 # The suffix(es) of source filenames.
 # Can also be a list: source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'
