@@ -2,17 +2,7 @@
 Relevant Literature
 ===================
 
-Multiple spectroscopic properties have been considered in the literature
-to probe for systematic physical differences in low and high redshift SNe.
-For example, the presence and depth of absorption features provides
-an indication of various ion produced in the explosion.
-The velocity of these features also provides information about the ions'
-distribution within the photosphere and the kinetic energy of the SN event.
-This latter effect is particularly important from a cosmological perspective
-as the kinetic energy of the ejecta directly impacts it's opacity. As a result,
-SNe with higher ejecta velocities tend to be both brighter and have broader
-light-curve shapes.
-
+This page outlines notes on a subset of relevant literature to our project.
 
 Definitions of Spectrocopic Classification Schemes
 ==================================================
@@ -71,30 +61,115 @@ Papers investigating Host Galaxy Correlations
 - Jones 2018
 - Rose 2019
 
-
 Papers Investigating Redshift Evolution
 =======================================
 
-- `Bronder 2008`_
-- Blondin 2018
-- `Siebert 2019`_
-- Kang 2020
-- Rose 2020
-- Hoflich 1998
-- Hatano  2000
-- Lentzet 2000
+`Hoflich 1998`_
+---------------
+
+- **Sample Size:**
+- **Survey:**
+- **Dates**:
+- **Sampling:**
+- **Redshift:**
+
+**Conclusions:**
+
 
 `Hook 2005`_
 ------------
 
-In Hook+ 2005 14 high-redshift (0.17 < z < 0.83) SNe were considered from
-the SupernovaCosmology Project and no evidence was found for evolution in
-SNe Ia properties with redshift. Plotting the high-redshift sample against
-well-observed local SNe showed a clear indication that the overall trends
-spectroscopic evolution are the same at low and high z. Furthermore,
-measurements of the Ca ejecta velocity in the high-redshift spectra were
-also consistent with those measured from low-redshift, Branch-normal SNe Ia.
+- **Sample Size:** 14 SNe
+- **Survey:** Supernova Cosmology Project
+- **Dates**:
+- **Sampling:** Peak only
+- **Redshift:** 0.17 < z < 0.83
 
+**Conclusions:**
+
+No evidence was found for evolution in SNe Ia properties with redshift.
+Plotting the high-redshift sample against well-observed local SNe showed a
+clear indication that the overall trends spectroscopic evolution are the
+same at low and high z. Furthermore, measurements of the Ca ejecta velocity
+in the high-redshift spectra were also consistent with those measured from
+low-redshift, Branch-normal SNe Ia.
+
+`Bronder 2008`_
+---------------
+
+- **Sample Size:**
+- **Survey:**
+- **Dates**:
+- **Sampling:**
+- **Redshift:**
+
+**Conclusions:**
+
+`Hatano  2000`_
+---------------
+
+- **Sample Size:**
+- **Survey:**
+- **Dates**:
+- **Sampling:**
+- **Redshift:**
+
+**Conclusions:**
+
+`Lentzet 2000`_
+---------------
+
+- **Sample Size:**
+- **Survey:**
+- **Dates**:
+- **Sampling:**
+- **Redshift:**
+
+**Conclusions:**
+
+`Blondin 2018`_
+---------------
+
+- **Sample Size:**
+- **Survey:**
+- **Dates**:
+- **Sampling:**
+- **Redshift:**
+
+**Conclusions:**
+
+`Siebert 2019`_
+---------------
+
+- **Sample Size:**
+- **Survey:**
+- **Dates**:
+- **Sampling:**
+- **Redshift:**
+
+**Conclusions:**
+
+`Kang 2020`_
+-------------
+
+- **Sample Size:**
+- **Survey:**
+- **Dates**:
+- **Sampling:**
+- **Redshift:**
+
+**Conclusions:**
+
+`Rose 2020`_
+-------------
+
+- **Sample Size:**
+- **Survey:**
+- **Dates**:
+- **Sampling:**
+- **Redshift:**
+
+**Conclusions:**
 
 Papers Investigating Inherent Spectroscopic Diversity
 =====================================================
@@ -102,15 +177,16 @@ Papers Investigating Inherent Spectroscopic Diversity
 `Blondin 2012`_
 ---------------
 
-Considered 2603 spectra of 462 SNe Ia observed by the Center for Astrophysics
-(CfA) supernova program from October 1993 through August 2008. Out of the
-observed targets, 313 have two or more spectra, and of these each SN has an
-average of 8 observed spectra.
-The median redshift of the sample is :math:`z ~ 0.023` with :math:`z < 0.1`
-for all but a single high redshift target (SN 1996ab at :math:`z ~ 0.123`)
+- **Sample Size:** 2603 spectra of 462 SNe Ia
+- **Survey:** Center for Astrophysics (CfA) Supernova Program
+- **Dates**: October 1993 through August 2008.
+- **Sampling:** 313 SNe have two or more spectra, and of these each SN has an
+  average of 8 observed spectra.
+- **Redshift:** The median redshift of the sample is :math:`z ~ 0.023` with
+  :math:`z < 0.1` for all but a single high redshift target
+  (SN 1996ab at :math:`z ~ 0.123`)
 
-Conclusions
-^^^^^^^^^^^
+**Conclusions:**
 
 Using the classification schemes of Branch 2006 Wang 2009 there was found to
 be a continuum of spectroscopic properties (i.e., no strict boundaries)
