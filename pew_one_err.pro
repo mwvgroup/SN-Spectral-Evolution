@@ -70,7 +70,7 @@ vel=d
 evel=d
 ew=d
 eew=d
-area=d
+calc_area=d
 earea=d
 count=0
 inl=inl-5
@@ -105,7 +105,7 @@ nph=nph-5
         smallarea=smallarea+((nw[k+1]-nw[k])*min(yhere)+(nw[k+1]-nw[k])*(max(yhere)-min(yhere))/2.)
       endfor
       ;;;AREA;;;
-      area[count]=bigarea-smallarea
+      calc_area[count]=bigarea-smallarea
       ;earea[count]
       
       nwb=X1+float(indgen(n_elements(nw)+1))*(X2-X1)/n_elements(nw)
@@ -173,7 +173,7 @@ nph=nph-5
 ;  oplot,nw, 1-gaussian(nw, result(0:3)), color=50, thick=5
 ;  oplot,[mean(vel)],[mean(vel)],psym=1
 ;  oplot,[mean(vel),mean(vel)],[Y3,1.0],col=cgcolor('red')
-  print,label,label2,mean(vel),'(',stddev(vel),')',mean(ew),'(',stddev(ew),')',mean(d),'(',stddev(d),')',mean(area),'(',stddev(area),')',$
+  print,label,label2,mean(vel),'(',stddev(vel),')',mean(ew),'(',stddev(ew),')',mean(d),'(',stddev(d),')',mean(calc_area),'(',stddev(calc_area),')',$
   format='(a10,2x,a10,2x,f7.2,a1,f5.2,a1,2x,f6.2,a1,f5.2,a1,2x,e9.2,a1,e9.2,a1,2x,e9.2,a1,e9.2,a1)'
 
   ;ch=get_kbrd()

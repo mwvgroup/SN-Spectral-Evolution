@@ -1,0 +1,75 @@
+# Number of steps to take in either direction when varying feature bounds
+# to determine sampling error
+nstep: 5
+
+# Settings used when correcting for extinction and binning the spectra
+prepare:
+  rv: 3.1
+  bin_size: 5
+  bin_method: median
+
+# Definitions of the features we want to investigate
+features:
+  pW1:
+    feature_id: Ca ii H&K
+    restframe: 3945.02
+    lower_blue: 3500
+    upper_blue: 3800
+    lower_red: 3900
+    upper_red: 4100
+  
+  pW2:
+    feature_id: Si ii λ4130
+    restframe: 4129.78
+    lower_blue: 3900
+    upper_blue: 4000
+    lower_red: 4000
+    upper_red: 4150
+  
+  pW3:
+    feature_id: Mg ii, Fe ii
+    restframe: 4481.00
+    lower_blue: 3900
+    upper_blue: 4150
+    lower_red: 4450
+    upper_red: 4700
+  
+  pW4:
+    feature_id: Fe ii, Si ii
+    restframe: 5169.00
+    lower_blue: 4500
+    upper_blue: 4700
+    lower_red: 5050
+    upper_red: 5550
+  
+  pW5:
+    feature_id: S ii λ5449, λ5622
+    restframe: 5535.5   # (5449 + 5622) / 2
+    lower_blue: 5150
+    upper_blue: 5300
+    lower_red: 5500
+    upper_red: 5700
+  
+  pW6:
+    feature_id: Si ii λ5972
+    restframe: 5971.89
+    lower_blue: 5550
+    upper_blue: 5700
+    lower_red: 5800
+    upper_red: 6000
+  
+  pW7:
+    feature_id: Si ii λ6355
+    restframe: 6356.08
+    lower_blue: 5800
+    upper_blue: 6000
+    lower_red: 6200
+    upper_red: 6540
+  
+  pW8:
+    feature_id: Ca ii IR triplet
+    restframe: 8578.79
+    lower_blue: 7500
+    upper_blue: 8000
+    lower_red: 8200
+    upper_red: 8900

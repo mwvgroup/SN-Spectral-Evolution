@@ -1,3 +1,6 @@
+sndata
+PyQt5
+pyqtgraph
 astropy
 extinction
 matplotlib
@@ -5,4 +8,4 @@ numpy
 scipy
 sfdmap
 uncertainties
-yaml
+pyyaml
