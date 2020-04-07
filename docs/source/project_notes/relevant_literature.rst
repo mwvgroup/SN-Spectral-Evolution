@@ -23,7 +23,8 @@ Definitions of Spectrocopic Classification Schemes
 --------------
 
 .. note:: **TLDR:** SNe Ia are subclassed into shallow silicon, core-normal,
-   broad line, and cool groups based on the strength 5750 A vs 6100 A.
+   broad line, and cool groups based on relative the strength of Si II
+   features at 5750 and 6100 Angstroms.
 
 This paper identifies classifications of SNe Ia using the width of the 5750
 and 6100 features (usually attributed to Si ii at 5972 and 6355). To simplify
