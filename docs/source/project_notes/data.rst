@@ -25,11 +25,11 @@ includes 1359 transient and variable objects, 692 of which were classified as
 being SNe Ia. Redshift values for the SDSS data sample run from
 :math:`.014 < z < 0.580`.
 
-A number of SDSS spectra have visible Ha features that indicated an incomplete
-host galaxy subtraction. Furthermore, some spectra are too noisy to confidently
-identify the location or presence of various features. These spectra are
-identified by visual inspection, and are skipped at the discretion of the
-investigator.
+A number of SDSS spectra have visible H-alpha features that indicated an
+incomplete host galaxy subtraction. Furthermore, some spectra are too noisy
+to confidently identify the location or presence of various features. These
+spectra are identified by visual inspection, and are skipped at the
+discretion of the investigator.
 
 .. _Folatelli et al. 2013: https://ui.adsabs.harvard.edu/abs/2013ApJ...773...53F/abstract
 .. _Sako et al. 2018: https://ui.adsabs.harvard.edu/abs/2018PASP..130f4002S/abstract
