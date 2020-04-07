@@ -1,1 +1,1 @@
-# Evolution of SNe Demographics
+# Evolution of SN Ia Spectra
