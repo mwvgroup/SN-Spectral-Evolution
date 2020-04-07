@@ -35,10 +35,10 @@ normal group. Other than a narrower Si feature, they look remarkably similar.
 The primary reason for the spectroscopic differences seems to be the lower
 temperature, as indicated by low temperature ion signatures (e.g. Ti).
 Otherwise, they have the same ions evident in their spectra, just at very
-different optical depths. This aligns with their lower temperatures since "as
-noted by Hatano+ (2002) and Ho Flich+ (2002), there is a
+different optical depths. This aligns with their lower temperatures since
+*"as noted by Hatano+ (2002) and Ho Flich+ (2002), there is a
 temperature threshold below which, owing to abrupt changes in key ionization
-ratios, line optical depths change abruptly (Hatano+ 1999)."
+ratios, line optical depths change abruptly (Hatano+ 1999)."*
 
 The core-normal subgroup have a very high degree of similarity, suggesting
 a standard, common physical mechanism involving no large inhomogeneities near
@@ -182,9 +182,8 @@ Papers Investigating Inherent Spectroscopic Diversity
 - **Dates**: October 1993 through August 2008.
 - **Sampling:** 313 SNe have two or more spectra, and of these each SN has an
   average of 8 observed spectra.
-- **Redshift:** The median redshift of the sample is :math:`z ~ 0.023` with
-  :math:`z < 0.1` for all but a single high redshift target
-  (SN 1996ab at :math:`z ~ 0.123`)
+- **Redshift:**  `z < 0.1` with a median :math:`z ~ 0.023`.
+  One high redshift target (SN 1996ab) at :math:`z ~ 0.123`.
 
 **Conclusions:**
 
