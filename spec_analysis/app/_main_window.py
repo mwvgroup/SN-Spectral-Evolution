@@ -116,7 +116,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Create lines marking estimated start and end of a feature
         dummy_val = 3500
-        line_style = {'width': 2, 'color': 'r'}
+        line_style = {'width': 3, 'color': 'r'}
         self.lower_bound_line = pg.InfiniteLine(dummy_val, pen=line_style, movable=True)
         self.upper_bound_line = pg.InfiniteLine(dummy_val, pen=line_style, movable=True)
         self.graph_widget.addItem(self.lower_bound_line)
@@ -126,14 +126,16 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create regions highlighting wavelength ranges used when estimating
         # the start and end of a feature
         dummy_arr = [3500, 3800]
-        self.lower_bound_region = pg.LinearRegionItem(dummy_arr, movable=False)
-        self.upper_bound_region = pg.LinearRegionItem(dummy_arr, movable=False)
+        transparent_red = (255, 0, 0, 50)
+        transparent_blue = (0, 0, 255, 50)
+        self.lower_bound_region = pg.LinearRegionItem(dummy_arr, brush=transparent_red, movable=False)
+        self.upper_bound_region = pg.LinearRegionItem(dummy_arr, brush=transparent_blue, movable=False)
         self.graph_widget.addItem(self.lower_bound_region)
         self.graph_widget.addItem(self.upper_bound_region)
 
         # Establish a dummy place holder for the plotted spectrum
         dummy_wave, dummy_flux = [1, 2, 3], [4, 5, 6]
-        self.spectrum_line = self.graph_widget.plot(dummy_wave, dummy_flux)
+        self.binned_spectrum_line = self.graph_widget.plot(dummy_wave, dummy_flux)
         self.plotted_feature_fits = []
 
     ###########################################################################
@@ -264,6 +266,7 @@ class MainWindow(QtWidgets.QMainWindow):
         QApplication.processEvents()
         self.velocity_label.setText('N/A')
         self.pew_label.setText('N/A')
+        self.notes_text_edit.clear()
 
     ###########################################################################
     # Plotting related functions
@@ -286,8 +289,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Plot the binned and rest framed spectrum
         spectrum = self.current_spectrum
-        self.spectrum_line.clear()
-        self.spectrum_line = self.graph_widget.plot(
+        self.binned_spectrum_line.clear()
+        self.binned_spectrum_line = self.graph_widget.plot(
             spectrum.bin_wave,
             spectrum.bin_flux,
             pen={'color': 'k'})
@@ -312,9 +315,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Update appropriate GUI labels
         QApplication.processEvents()
         self.current_object_id_label.setText(spectrum.obj_id)
-        self.current_ra_label.setText(str(spectrum.ra))
-        self.current_dec_label.setText(str(spectrum.dec))
-        self.current_redshift_label.setText(str(spectrum.z))
+        self.current_ra_label.setText(rf'{spectrum.ra:.3f}')
+        self.current_dec_label.setText(rf'{spectrum.dec:.3f}')
+        self.current_redshift_label.setText(rf'{spectrum.dec:.3f}')
         self.current_feature_label.setText(feat_name)
 
         self.graph_widget.autoRange()
@@ -395,11 +398,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             self.current_feat_results.extend(sampling_results)
-            velocity = np.round(sampling_results[0], 2)
-            pew = np.round(sampling_results[3], 2)
+            velocity = sampling_results[0]
+            pew = sampling_results[3]
+
             QApplication.processEvents()
-            self.velocity_label.setText(str(velocity))
-            self.pew_label.setText(str(pew))
+            self.velocity_label.setText(rf'{velocity:.3f}')
+            self.pew_label.setText(rf'{pew:.3f}')
 
     def save(self):
         """Logic for the ``save`` button
@@ -407,7 +411,6 @@ class MainWindow(QtWidgets.QMainWindow):
         Save current feature measurements to internal DataFrame.
         """
 
-        self._reset_measurement_labels()
         if self.current_feat_results is None:
             QMessageBox.about(self, 'Error', 'No calculated measurements available to save.')
             return
@@ -425,6 +428,8 @@ class MainWindow(QtWidgets.QMainWindow):
         QApplication.processEvents()
         self.last_feature_start_label.setText(str(lower_bound_loc))
         self.last_feature_end_label.setText(str(upper_bound_loc))
+
+        self._reset_measurement_labels()
         self.iterate_to_next_inspection()
 
     def skip(self):
