@@ -1,4 +1,4 @@
-sndata
+sndata>=1.0.1
 PyQt5
 pyqtgraph
 astropy
