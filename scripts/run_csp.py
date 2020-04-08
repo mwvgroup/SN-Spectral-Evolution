@@ -9,6 +9,7 @@ Include Ia spectra only.
 import sys
 from pathlib import Path
 
+import numpy as np
 import yaml
 from astropy.table import Table
 from sndata.csp import DR1, DR3
@@ -46,12 +47,17 @@ def get_csp_t0(obj_id):
         The time of B-band maximum in units of
     """
 
+    # Unknown object ID
     if obj_id not in csp_table_3.index:
         raise ValueError(f't0 not available for {obj_id}')
 
     t0_mjd = csp_table_3.loc[obj_id]['T(Bmax)']
-    t0_jd = convert_to_jd(t0_mjd)
-    return t0_jd
+
+    # Known object Id with unknown peak time
+    if np.isnan(t0_mjd):
+        raise ValueError(f't0 not available for {obj_id}')
+
+    return convert_to_jd(t0_mjd)
 
 
 def pre_process(table):
