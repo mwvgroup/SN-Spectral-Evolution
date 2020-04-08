@@ -64,7 +64,7 @@ features:
     lower_blue: 5800
     upper_blue: 6000
     lower_red: 6200
-    upper_red: 6540
+    upper_red: 6600
   
   pW8:
     feature_id: Ca ii IR triplet
