@@ -116,7 +116,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Create lines marking estimated start and end of a feature
         dummy_val = 3500
-        line_style = {'width': 2, 'color': 'r'}
+        line_style = {'width': 3, 'color': 'r'}
         self.lower_bound_line = pg.InfiniteLine(dummy_val, pen=line_style, movable=True)
         self.upper_bound_line = pg.InfiniteLine(dummy_val, pen=line_style, movable=True)
         self.graph_widget.addItem(self.lower_bound_line)
@@ -126,8 +126,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # Create regions highlighting wavelength ranges used when estimating
         # the start and end of a feature
         dummy_arr = [3500, 3800]
-        self.lower_bound_region = pg.LinearRegionItem(dummy_arr, movable=False)
-        self.upper_bound_region = pg.LinearRegionItem(dummy_arr, movable=False)
+        transparent_red = (255, 0, 0, 50)
+        transparent_blue = (0, 0, 255, 50)
+        self.lower_bound_region = pg.LinearRegionItem(dummy_arr, brush=transparent_red, movable=False)
+        self.upper_bound_region = pg.LinearRegionItem(dummy_arr, brush=transparent_blue, movable=False)
         self.graph_widget.addItem(self.lower_bound_region)
         self.graph_widget.addItem(self.upper_bound_region)
 
