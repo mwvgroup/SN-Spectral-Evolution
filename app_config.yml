@@ -76,12 +76,12 @@ features:
 
 pens:
   saved_upper_bound:
-    width: 3, 
-    color: [0, 180, 0]
+    width: 3
+    color: [0, 180, 0, 75]
 
   saved_lower_bound:
-    width: 3, 
-    color: [0, 180, 0]
+    width: 3
+    color: [0, 180, 0, 75]
 
   observed_spectrum: 
     color: [0, 0, 180, 80]

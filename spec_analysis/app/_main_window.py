@@ -192,6 +192,7 @@ class MainWindow(QtWidgets.QMainWindow):
             item = bound_list.pop()
             self.graph_widget.removeItem(item)
 
+        print(self.saved_upper_bound_pen)
         upper_bound_line = pg.InfiniteLine(
             self.upper_bound_line.value(), pen=self.saved_upper_bound_pen)
 
