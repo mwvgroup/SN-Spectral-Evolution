@@ -35,16 +35,6 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QLabel" name="progress_label">
-            <property name="text">
-             <string>00.00 %</string>
-            </property>
-            <property name="indent">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QProgressBar" name="progress_bar">
             <property name="value">
              <number>0</number>

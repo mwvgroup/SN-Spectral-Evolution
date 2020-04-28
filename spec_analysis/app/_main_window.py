@@ -250,7 +250,6 @@ class MainWindow(QtWidgets.QMainWindow):
         progress = (index + 1) / total_ids * 100
 
         self.progress_bar.setValue(progress)
-        self.progress_label.setText(f'{progress:.2f} %')
         QApplication.processEvents()
 
     def _iterate_to_next_spectrum(self):
@@ -333,6 +332,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.current_feat_idx = index
         self._reset_measurement_labels()
+        self.current_feat_results = None
         self.reset_plot()
 
     def _sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
