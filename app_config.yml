@@ -44,7 +44,7 @@ features:
   
   pW5:
     feature_id: S ii λ5449, λ5622
-    restframe: 5535.5   # (5449 + 5622) / 2
+    restframe: 5535.5   # [5449 + 5622] / 2
     lower_blue: 5150
     upper_blue: 5300
     lower_red: 5500
@@ -73,3 +73,36 @@ features:
     upper_blue: 8000
     lower_red: 8200
     upper_red: 8900
+
+pens:
+  saved_upper_bound:
+    width: 3, 
+    color: [0, 180, 0]
+
+  saved_lower_bound:
+    width: 3, 
+    color: [0, 180, 0]
+
+  observed_spectrum: 
+    color: [0, 0, 180, 80]
+
+  binned_spectrum:
+    width: 1.5
+    color: k
+
+  feature_fit:
+    color: r
+
+  lower_bound:
+    width: 3
+    color: r
+
+  upper_bound:
+    width: 3
+    color: r
+
+  lower_region:
+    [255, 0, 0, 50]
+
+  upper_region:
+    [0, 0, 255, 50]
