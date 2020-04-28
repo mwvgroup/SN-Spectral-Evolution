@@ -485,6 +485,7 @@ class SpectraIterator:
                 continue
 
             # Yield individual spectra for the object
+            # object_data.sort('wavelength')
             object_data = object_data.group_by(self.group_by)
             group_iter = zip(object_data.groups.keys, object_data.groups)
             for group_by_val, spectrum_data in group_iter:

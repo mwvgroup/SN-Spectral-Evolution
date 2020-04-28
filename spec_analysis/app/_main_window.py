@@ -166,7 +166,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plotted_feature_fits = []
         self.plotted_feature_bounds = dict()
 
-
     ###########################################################################
     # Plotting related functions
     ###########################################################################
