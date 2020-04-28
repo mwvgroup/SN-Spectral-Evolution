@@ -49,7 +49,7 @@ def get_results_dataframe(out_path: Path = None) -> pd.DataFrame:
         col_names.append(value + '_err')
         col_names.append(value + '_samperr')
 
-    col_names.append('msg')
+    col_names.append('notes')
     df = pd.DataFrame(columns=col_names)
     return df.set_index(['obj_id', 'time', 'feat_name'])
 
@@ -204,12 +204,26 @@ class MainWindow(QtWidgets.QMainWindow):
     ###########################################################################
 
     def _reset_measurement_labels(self):
-        """Reset labels for measurement results to display ``N/A``"""
+        """Update labels to display measurement results."""
+
+        key = self.current_spectrum.obj_id, self.current_spectrum.time, self.current_feat_name
+        try:
+            results = self.current_spec_results.loc[key]
+
+        except KeyError:
+            vel = 'N/A'
+            pew = 'N/A'
+            notes = ''
+
+        else:
+            vel = rf'{results.vel:.3}'
+            pew = rf'{results.pew:.3}'
+            notes = results.notes
 
         QApplication.processEvents()
-        self.velocity_label.setText('N/A')
-        self.pew_label.setText('N/A')
-        self.notes_text_edit.clear()
+        self.velocity_label.setText(vel)
+        self.pew_label.setText(pew)
+        self.notes_text_edit.setText(notes)
 
     def _write_results_to_file(self):
         """Save tabulated inspection results to disk
@@ -258,7 +272,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for self.current_spectrum in self._spectra_iter._iter_data:
             self._update_progress_bar()
 
-            # Skip if spectrum is aleady measured
+            # Skip if spectrum is already measured
             key = [self.current_spectrum.obj_id, self.current_spectrum.time]
             if key in existing:
                 continue
@@ -274,11 +288,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 continue
 
             break
-
-        # Update GUI labels
-        self.last_feature_start_label.setText('N/A')
-        self.last_feature_end_label.setText('N/A')
-        QApplication.processEvents()
 
     def _iterate_feature(self, direction, _raise=False):
         """Update the plot to depict the next feature
@@ -323,6 +332,7 @@ class MainWindow(QtWidgets.QMainWindow):
             break
 
         self.current_feat_idx = index
+        self._reset_measurement_labels()
         self.reset_plot()
 
     def _sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
@@ -421,7 +431,6 @@ class MainWindow(QtWidgets.QMainWindow):
             err_msg = 'Feature sampling extended beyond available wavelengths.'
             QMessageBox.about(self, 'Error', err_msg)
             self.current_feat_results = None
-            self._reset_measurement_labels()
 
         else:
             self.current_feat_results.extend(sampling_results)
@@ -456,8 +465,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_feature_start_label.setText(str(lower_bound_loc))
         self.last_feature_end_label.setText(str(upper_bound_loc))
 
-        self._reset_measurement_labels()
-        self._iterate_feature('forward')
+        self.next_feat()
 
     def next_feat(self):
         """Logic for the ``next feature`` button
@@ -465,13 +473,9 @@ class MainWindow(QtWidgets.QMainWindow):
         Skip inspection for the current feature
         """
 
-        self._reset_measurement_labels()
         self.clear_feature_fits()
-
-        QApplication.processEvents()
-        self.last_feature_start_label.setText('N/A')
-        self.last_feature_end_label.setText('N/A')
         self._iterate_feature('forward')
+        self._reset_measurement_labels()
 
     def last_feat(self):
         """Logic for the ``last feature`` button
@@ -479,13 +483,9 @@ class MainWindow(QtWidgets.QMainWindow):
         Skip inspection for the current feature
         """
 
-        self._reset_measurement_labels()
         self.clear_feature_fits()
-
-        QApplication.processEvents()
-        self.last_feature_start_label.setText('N/A')
-        self.last_feature_end_label.setText('N/A')
         self._iterate_feature('reverse')
+        self._reset_measurement_labels()
 
     def finished(self):
         """Logic for the ``finished`` button
@@ -493,10 +493,8 @@ class MainWindow(QtWidgets.QMainWindow):
         Skip inspection for all features in the current spectrum
         """
 
-        self._reset_measurement_labels()
         self.clear_feature_fits()
         self._iterate_to_next_spectrum()
-        self.reset_plot()
 
     ###########################################################################
     # Connect signals and slots for GUI elements
