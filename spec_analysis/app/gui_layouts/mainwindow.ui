@@ -326,16 +326,23 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="skip_button">
+           <widget class="QPushButton" name="last_feat_button">
             <property name="text">
-             <string>Skip</string>
+             <string>&lt;</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="skip_all_button">
+           <widget class="QPushButton" name="next_feat_button">
             <property name="text">
-             <string>Skip All</string>
+             <string>&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="finished_button">
+            <property name="text">
+             <string>Finished</string>
             </property>
            </widget>
           </item>
@@ -384,8 +391,8 @@
  </customwidgets>
  <tabstops>
   <tabstop>save_button</tabstop>
-  <tabstop>skip_button</tabstop>
-  <tabstop>skip_all_button</tabstop>
+  <tabstop>next_feat_button</tabstop>
+  <tabstop>finished_button</tabstop>
  </tabstops>
  <resources/>
  <connections/>

@@ -5,7 +5,7 @@ nstep: 5
 # Settings used when correcting for extinction and binning the spectra
 prepare:
   rv: 3.1
-  bin_size: 5
+  bin_size: 10
   bin_method: median
 
 # Definitions of the features we want to investigate

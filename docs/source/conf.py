@@ -53,7 +53,7 @@ def skip(app, what, name, obj, would_skip, options):
 
 
 def setup(app):
-    app.connect("autodoc-skip-member", skip)
+    app.connect("autodoc-next_feat-member", skip)
 
 
 # -- Options for HTML output -------------------------------------------------

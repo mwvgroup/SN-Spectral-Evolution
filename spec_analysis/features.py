@@ -201,7 +201,7 @@ def guess_feature_bounds(wave, flux, feature):
 class ObservedFeature:
 
     def __init__(self, wave, flux):
-        """Represents a spectrum covering a single absorption feature
+        """Represents a spectral observation spanning a single absorption feature
 
         Args:
             wave (ndarray): The wavelength values of the feature

@@ -11,4 +11,5 @@ combined and custom data sets.
 
 from . import app
 from . import exceptions
-from . import features
+from .features import ObservedFeature
+from .spectra import SpectraIterator, Spectrum

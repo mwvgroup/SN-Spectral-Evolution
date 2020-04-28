@@ -296,6 +296,10 @@ class Spectrum:
         if self.rest_wave is None or self.rest_flux is None:
             raise RuntimeError('Spectrum must be corrected for extinction before binning')
 
+        if bin_size == 0:
+            self.bin_wave, self.bin_flux = self.rest_wave, self.rest_flux
+            return
+
         # Don't apply binning if requested resolution is the same or less than
         # the observed wavelength resolution
         if (bin_method != 'gauss') and any(bin_size <= self.rest_wave[1:] - self.rest_wave[:-1]):
@@ -457,7 +461,7 @@ class SpectraIterator:
             raise ValueError(f'Requires spectroscopic data. Passed {data_type}')
 
         # Store arguments and set defaults
-        default_obj_ids = data_release.get_available_ids()
+        default_obj_ids = list(data_release.get_available_ids())
         self.obj_ids = default_obj_ids if obj_ids is None else obj_ids
         self.pre_process = pre_process
         self.data_release = data_release
@@ -476,7 +480,7 @@ class SpectraIterator:
             if self.pre_process:
                 object_data = self.pre_process(object_data)
 
-            # If formatting data results in an empty table, skip to next object
+            # If formatting data results in an empty table, next_feat to next object
             if not object_data:
                 continue
 
@@ -493,5 +497,5 @@ class SpectraIterator:
                 setattr(spectrum, self.group_by, group_by_val[0])
                 yield spectrum
 
-    def __next__(self):
-        return next(self._iter_data)
+    def __iter__(self):
+        return self._iter_data
