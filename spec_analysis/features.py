@@ -140,63 +140,6 @@ from scipy.optimize import curve_fit
 from uncertainties import ufloat
 from uncertainties.unumpy import nominal_values, std_devs
 
-from .exceptions import FeatureNotObserved
-
-
-def find_peak_wavelength(wave, flux, lower_bound, upper_bound, behavior='min'):
-    """Return wavelength of the maximum flux within given wavelength bounds
-
-    The behavior argument can be used to select the 'min' or 'max' wavelength
-    when there are multiple wavelengths having the same peak flux value. The
-    default behavior is 'min'.
-
-    Args:
-        wave       (ndarray): An array of wavelength values
-        flux       (ndarray): An array of flux values
-        lower_bound  (float): Lower wavelength boundary
-        upper_bound  (float): Upper wavelength boundary
-        behavior       (str): Return the 'min' or 'max' wavelength
-
-    Returns:
-        The wavelength for the maximum flux value
-    """
-
-    # Make sure the given spectrum spans the given wavelength bounds
-    if not any((wave > lower_bound) & (wave < upper_bound)):
-        raise FeatureNotObserved('Feature not in spectral wavelength range.')
-
-    # Select the portion of the spectrum within the given bounds
-    feature_indices = (lower_bound <= wave) & (wave <= upper_bound)
-    feature_flux = flux[feature_indices]
-    feature_wavelength = wave[feature_indices]
-
-    # Get peak according to specified behavior
-    peak_indices = np.argwhere(feature_flux == np.max(feature_flux))
-    behavior_func = getattr(np, behavior)
-    return behavior_func(feature_wavelength[peak_indices])
-
-
-def guess_feature_bounds(wave, flux, feature):
-    """Get the start and end wavelengths / flux for a given feature
-
-    Args:
-        wave (ndarray): An array of wavelength values
-        flux (ndarray): An array of flux values
-        feature (dict): A dictionary defining feature parameters
-
-    Returns:
-        - The starting wavelength of the feature
-        - The ending wavelength of the feature
-    """
-
-    feat_start = find_peak_wavelength(
-        wave, flux, feature['lower_blue'], feature['upper_blue'], 'min')
-
-    feat_end = find_peak_wavelength(
-        wave, flux, feature['lower_red'], feature['upper_red'], 'max')
-
-    return feat_start, feat_end
-
 
 class ObservedFeature:
 

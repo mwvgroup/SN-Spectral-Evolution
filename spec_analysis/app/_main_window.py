@@ -15,9 +15,8 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
-from spec_analysis import features
-from spec_analysis.exceptions import FeatureNotObserved, SamplingRangeError
-from spec_analysis.spectra import SpectraIterator
+from ..exceptions import FeatureNotObserved, SamplingRangeError
+from ..spectra import SpectraIterator, guess_feature_bounds
 
 _file_dir = Path(__file__).resolve().parent
 _gui_layouts_dir = _file_dir / 'gui_layouts'
@@ -227,7 +226,7 @@ class MainWindow(QtWidgets.QMainWindow):
             pen=self.binned_spectrum_pen)
 
         # Guess start and end locations of the feature
-        lower_bound, upper_bound = features.guess_feature_bounds(
+        lower_bound, upper_bound = guess_feature_bounds(
             self.current_spectrum.bin_wave,
             self.current_spectrum.bin_flux,
             self.current_feat_def
@@ -385,7 +384,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # If the feature is out of range, try the next one
             try:
-                features.guess_feature_bounds(
+                guess_feature_bounds(
                     self.current_spectrum.bin_wave,
                     self.current_spectrum.bin_flux,
                     self.current_feat_def
