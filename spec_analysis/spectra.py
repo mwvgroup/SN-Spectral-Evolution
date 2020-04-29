@@ -154,13 +154,12 @@ import extinction
 from pathlib import Path
 
 import numpy as np
-import scipy
 import sfdmap
-from scipy.ndimage import gaussian_filter
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
-from .exceptions import SamplingRangeError
+from . import binning
+from .exceptions import FeatureNotObserved, SamplingRangeError
 from .features import ObservedFeature
 
 _file_dir = Path(__file__).resolve().parent
@@ -168,61 +167,59 @@ _dust_dir = _file_dir / 'schlegel98_dust_map'
 dust_map = sfdmap.SFDMap(_dust_dir)
 
 
-def bin_sum(x, y, bins):
-    """Find the binned sum of a sampled function
+def find_peak_wavelength(wave, flux, lower_bound, upper_bound, behavior='min'):
+    """Return wavelength of the maximum flux within given wavelength bounds
+
+    The behavior argument can be used to select the 'min' or 'max' wavelength
+    when there are multiple wavelengths having the same peak flux value. The
+    default behavior is 'min'.
 
     Args:
-        x    (ndarray): Array of x values
-        y    (ndarray): Array of y values
-        bins (ndarray): Bin boundaries
+        wave       (ndarray): An array of wavelength values
+        flux       (ndarray): An array of flux values
+        lower_bound  (float): Lower wavelength boundary
+        upper_bound  (float): Upper wavelength boundary
+        behavior       (str): Return the 'min' or 'max' wavelength
 
-    Return:
-        - An array of bin centers
-        - An array of binned y values
+    Returns:
+        The wavelength for the maximum flux value
     """
 
-    hist, bin_edges = np.histogram(x, bins=bins, weights=y)
-    bin_centers = bin_edges[:-1] + ((bin_edges[1] - bin_edges[0]) / 2)
-    return bin_centers, hist
+    # Make sure the given spectrum spans the given wavelength bounds
+    if not any((wave > lower_bound) & (wave < upper_bound)):
+        raise FeatureNotObserved('Feature not in spectral wavelength range.')
+
+    # Select the portion of the spectrum within the given bounds
+    feature_indices = (lower_bound <= wave) & (wave <= upper_bound)
+    feature_flux = flux[feature_indices]
+    feature_wavelength = wave[feature_indices]
+
+    # Get peak according to specified behavior
+    peak_indices = np.argwhere(feature_flux == np.max(feature_flux))
+    behavior_func = getattr(np, behavior)
+    return behavior_func(feature_wavelength[peak_indices])
 
 
-def bin_avg(x, y, bins):
-    """Find the binned average of a sampled function
+def guess_feature_bounds(wave, flux, feature):
+    """Get the start and end wavelengths / flux for a given feature
 
     Args:
-        x    (ndarray): Array of x values
-        y    (ndarray): Array of y values
-        bins (ndarray): Bin boundaries
+        wave (ndarray): An array of wavelength values
+        flux (ndarray): An array of flux values
+        feature (dict): A dictionary defining feature parameters
 
-    Return:
-        - An array of bin centers
-        - An array of binned y values
+    Returns:
+        - The starting wavelength of the feature
+        - The ending wavelength of the feature
     """
 
-    bin_centers, _ = bin_sum(x, y, bins)
-    bin_means = (
-            np.histogram(x, bins=bins, weights=y)[0] /
-            np.histogram(x, bins)[0]
-    )
-    return bin_centers, bin_means
+    feat_start = find_peak_wavelength(
+        wave, flux, feature['lower_blue'], feature['upper_blue'], 'min')
 
+    feat_end = find_peak_wavelength(
+        wave, flux, feature['lower_red'], feature['upper_red'], 'max')
 
-def bin_median(x, y, size, cval=0):
-    """Pass data through a median filter
-
-    Args:
-        x    (ndarray): Array of x values
-        y    (ndarray): Array of y values
-        size (float): Size of the filter window
-        cval (float): Value used to pad edges of filtered data
-
-    Return:
-        - An array of filtered x values
-        - An array of filtered y values
-    """
-
-    filter_y = scipy.ndimage.median_filter(y, size, mode='constant', cval=cval)
-    return x, filter_y
+    return feat_start, feat_end
 
 
 class Spectrum:
@@ -296,6 +293,10 @@ class Spectrum:
         if self.rest_wave is None or self.rest_flux is None:
             raise RuntimeError('Spectrum must be corrected for extinction before binning')
 
+        if bin_size == 0:
+            self.bin_wave, self.bin_flux = self.rest_wave, self.rest_flux
+            return
+
         # Don't apply binning if requested resolution is the same or less than
         # the observed wavelength resolution
         if (bin_method != 'gauss') and any(bin_size <= self.rest_wave[1:] - self.rest_wave[:-1]):
@@ -307,19 +308,19 @@ class Spectrum:
         bins = np.arange(min_wave, max_wave + 1, bin_size)
 
         if bin_method == 'sum':
-            self.bin_wave, self.bin_flux = bin_sum(
+            self.bin_wave, self.bin_flux = binning.bin_sum(
                 self.rest_wave, self.rest_flux, bins)
 
         elif bin_method == 'average':
-            self.bin_wave, self.bin_flux = bin_avg(
+            self.bin_wave, self.bin_flux = binning.bin_avg(
                 self.rest_wave, self.rest_flux, bins)
 
         elif bin_method == 'gauss':
-            self.bin_wave = self.rest_wave
-            self.bin_flux = gaussian_filter(self.rest_flux, bin_size)
+            self.bin_wave, self.bin_flux = binning.bin_gaussian(
+                self.rest_wave, self.rest_flux, bin_size)
 
         elif bin_method == 'median':
-            self.bin_wave, self.bin_flux = bin_median(
+            self.bin_wave, self.bin_flux = binning.bin_median(
                 self.rest_wave, self.rest_flux, bin_size)
 
         else:
@@ -371,10 +372,11 @@ class Spectrum:
                     raise SamplingRangeError
 
                 nw = self.bin_wave[sample_start_idx: sample_end_idx]
-                nf = self.bin_flux[sample_start_idx: sample_end_idx]
+                nbf = self.bin_flux[sample_start_idx: sample_end_idx]
+                nrf = self.rest_flux[sample_start_idx: sample_end_idx]
 
                 # Determine feature properties
-                feature = ObservedFeature(nw, nf)
+                feature = ObservedFeature(nw, nrf, nbf)
                 feature.calc_pew()
                 feature.calc_area()
                 feature.calc_velocity(rest_frame)
@@ -457,7 +459,7 @@ class SpectraIterator:
             raise ValueError(f'Requires spectroscopic data. Passed {data_type}')
 
         # Store arguments and set defaults
-        default_obj_ids = data_release.get_available_ids()
+        default_obj_ids = list(data_release.get_available_ids())
         self.obj_ids = default_obj_ids if obj_ids is None else obj_ids
         self.pre_process = pre_process
         self.data_release = data_release
@@ -476,11 +478,12 @@ class SpectraIterator:
             if self.pre_process:
                 object_data = self.pre_process(object_data)
 
-            # If formatting data results in an empty table, skip to next object
+            # If formatting data results in an empty table, next_feat to next object
             if not object_data:
                 continue
 
             # Yield individual spectra for the object
+            # object_data.sort('wavelength')
             object_data = object_data.group_by(self.group_by)
             group_iter = zip(object_data.groups.keys, object_data.groups)
             for group_by_val, spectrum_data in group_iter:
@@ -493,5 +496,5 @@ class SpectraIterator:
                 setattr(spectrum, self.group_by, group_by_val[0])
                 yield spectrum
 
-    def __next__(self):
-        return next(self._iter_data)
+    def __iter__(self):
+        return self._iter_data
