@@ -553,8 +553,8 @@ class MainWindow(QtWidgets.QMainWindow):
         upper_bound_loc = self.current_spec_results.loc[index]['feat_end']
 
         QApplication.processEvents()
-        self.last_feature_start_label.setText(str(lower_bound_loc))
-        self.last_feature_end_label.setText(str(upper_bound_loc))
+        self.last_feature_start_label.setText(f'{lower_bound_loc:.3f}')
+        self.last_feature_end_label.setText(f'{upper_bound_loc:.3f}')
 
         # Plot gaussian fit of the feature
         self.plot_saved_feature()
