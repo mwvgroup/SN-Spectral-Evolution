@@ -372,10 +372,11 @@ class Spectrum:
                     raise SamplingRangeError
 
                 nw = self.bin_wave[sample_start_idx: sample_end_idx]
-                nf = self.bin_flux[sample_start_idx: sample_end_idx]
+                nbf = self.bin_flux[sample_start_idx: sample_end_idx]
+                nrf = self.rest_flux[sample_start_idx: sample_end_idx]
 
                 # Determine feature properties
-                feature = ObservedFeature(nw, nf)
+                feature = ObservedFeature(nw, nrf, nbf)
                 feature.calc_pew()
                 feature.calc_area()
                 feature.calc_velocity(rest_frame)
