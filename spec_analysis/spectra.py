@@ -154,75 +154,17 @@ import extinction
 from pathlib import Path
 
 import numpy as np
-import scipy
 import sfdmap
-from scipy.ndimage import gaussian_filter
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
+from . import binning
 from .exceptions import SamplingRangeError
 from .features import ObservedFeature
 
 _file_dir = Path(__file__).resolve().parent
 _dust_dir = _file_dir / 'schlegel98_dust_map'
 dust_map = sfdmap.SFDMap(_dust_dir)
-
-
-def bin_sum(x, y, bins):
-    """Find the binned sum of a sampled function
-
-    Args:
-        x    (ndarray): Array of x values
-        y    (ndarray): Array of y values
-        bins (ndarray): Bin boundaries
-
-    Return:
-        - An array of bin centers
-        - An array of binned y values
-    """
-
-    hist, bin_edges = np.histogram(x, bins=bins, weights=y)
-    bin_centers = bin_edges[:-1] + ((bin_edges[1] - bin_edges[0]) / 2)
-    return bin_centers, hist
-
-
-def bin_avg(x, y, bins):
-    """Find the binned average of a sampled function
-
-    Args:
-        x    (ndarray): Array of x values
-        y    (ndarray): Array of y values
-        bins (ndarray): Bin boundaries
-
-    Return:
-        - An array of bin centers
-        - An array of binned y values
-    """
-
-    bin_centers, _ = bin_sum(x, y, bins)
-    bin_means = (
-            np.histogram(x, bins=bins, weights=y)[0] /
-            np.histogram(x, bins)[0]
-    )
-    return bin_centers, bin_means
-
-
-def bin_median(x, y, size, cval=0):
-    """Pass data through a median filter
-
-    Args:
-        x    (ndarray): Array of x values
-        y    (ndarray): Array of y values
-        size (float): Size of the filter window
-        cval (float): Value used to pad edges of filtered data
-
-    Return:
-        - An array of filtered x values
-        - An array of filtered y values
-    """
-
-    filter_y = scipy.ndimage.median_filter(y, size, mode='constant', cval=cval)
-    return x, filter_y
 
 
 class Spectrum:
@@ -311,19 +253,19 @@ class Spectrum:
         bins = np.arange(min_wave, max_wave + 1, bin_size)
 
         if bin_method == 'sum':
-            self.bin_wave, self.bin_flux = bin_sum(
+            self.bin_wave, self.bin_flux = binning.bin_sum(
                 self.rest_wave, self.rest_flux, bins)
 
         elif bin_method == 'average':
-            self.bin_wave, self.bin_flux = bin_avg(
+            self.bin_wave, self.bin_flux = binning.bin_avg(
                 self.rest_wave, self.rest_flux, bins)
 
         elif bin_method == 'gauss':
-            self.bin_wave = self.rest_wave
-            self.bin_flux = gaussian_filter(self.rest_flux, bin_size)
+            self.bin_wave, self.bin_flux = binning.bin_gaussian(
+                self.rest_wave, self.rest_flux, bin_size)
 
         elif bin_method == 'median':
-            self.bin_wave, self.bin_flux = bin_median(
+            self.bin_wave, self.bin_flux = binning.bin_median(
                 self.rest_wave, self.rest_flux, bin_size)
 
         else:

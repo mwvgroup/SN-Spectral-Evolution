@@ -184,26 +184,24 @@ class MainWindow(QtWidgets.QMainWindow):
                 item = bound_list.pop()
                 self.graph_widget.removeItem(item)
 
-    def plot_current_feature_bounds(self):
+    def plot_feature_pew(self):
         """Clear any plotted feature boundaries from the plot"""
 
-        bound_list = self.plotted_feature_bounds.get(self.current_feat_name, [])
-        while bound_list:
-            item = bound_list.pop()
-            self.graph_widget.removeItem(item)
+        # Get nearest measured wavelengths to the specified feature bounds
+        i_start = np.abs(self.current_spectrum.bin_wave - self.lower_bound_line.value()).argmin()
+        i_end = np.abs(self.current_spectrum.bin_wave - self.upper_bound_line.value()).argmin()
 
-        print(self.saved_upper_bound_pen)
-        upper_bound_line = pg.InfiniteLine(
-            self.upper_bound_line.value(), pen=self.saved_upper_bound_pen)
+        phigh = self.graph_widget.plot(
+            x=self.current_spectrum.bin_wave[[i_start, i_end]],
+            y=self.current_spectrum.bin_flux[[i_start, i_end]])
 
-        lower_bound_line = pg.InfiniteLine(
-            self.lower_bound_line.value(), pen=self.saved_lower_bound_pen)
+        plow = self.graph_widget.plot(
+            x=self.current_spectrum.rest_wave[i_start: i_end + 1],
+            y=self.current_spectrum.rest_flux[i_start: i_end + 1])
 
-        self.graph_widget.addItem(lower_bound_line)
-        self.graph_widget.addItem(upper_bound_line)
-        self.plotted_feature_bounds[self.current_feat_name] = [
-            lower_bound_line, upper_bound_line
-        ]
+        pfill = pg.FillBetweenItem(phigh, plow, brush=(0, 180, 0, 75))
+        self.plotted_feature_bounds[self.current_feat_name] = [plow, phigh, pfill]
+        self.graph_widget.addItem(pfill)
 
     def reset_plot(self):
         """Reset the plot to display the current spectrum with default settings
@@ -534,7 +532,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_feature_end_label.setText(str(upper_bound_loc))
 
         # Plot gaussian fit of the feature
-        self.plot_current_feature_bounds()
+        self.plot_feature_pew()
         self.next_feat()
 
     def next_feat(self):
