@@ -345,7 +345,7 @@ class MainWindow(QtWidgets.QMainWindow):
             try:
                 self.current_spectrum.prepare_spectrum(**self._config['prepare'])
                 self.current_feat_idx = -1
-                self._iterate_feature('forward', _raise=True)
+                self._iterate_feature('forward', on_fail=True)
 
             # Skip if all features are out of bounds
             except FeatureNotObserved:
@@ -353,12 +353,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
             break
 
-    def _iterate_feature(self, direction, _raise=False):
+    def _iterate_feature(self, direction, on_fail='warn'):
         """Update the plot to depict the next feature
 
         If the last (i.e., reddest) feature is currently being plotted move
         to the next spectrum and plot the first feature. If a feature does not
         overlap the observed wavelength range, move to the next feature.
+
+        Args:
+            direction (str): Iterate 'forward' or 'reverse' through feature
+            on_fail   (str): 'raise', 'warn', or None on failure
         """
 
         if direction == 'forward':
@@ -376,10 +380,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Stop if on the last feature
             if not 0 <= index <= len(self._config['features']) - 1:
-                if _raise:
+                if on_fail == 'raise':
                     raise FeatureNotObserved
 
-                QMessageBox.about(self, 'Error', 'Could not find feature within observed wavelengths')
+                if on_fail == 'warn':
+                    QMessageBox.about(self, 'Error', 'Could not find feature within observed wavelengths')
+
                 return
 
             # If the feature is out of range, try the next one
@@ -532,7 +538,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Plot gaussian fit of the feature
         self.plot_feature_pew()
-        self.next_feat()
+        self._reset_measurement_labels()
+        self.clear_feature_fits()
+        self._iterate_feature('forward', 'None')
 
     def next_feat(self):
         """Logic for the ``next feature`` button
