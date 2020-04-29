@@ -97,13 +97,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def _init_pens(self):
 
         pens_dict = self._config.get('pens', {})
-        self.saved_upper_bound_pen = pens_dict.get(
-            'saved_upper_bound',
-            {'width': 3, 'color': (0, 180, 0), 'style': Qt.DotLine})
-
-        self.saved_lower_bound_pen = pens_dict.get(
-            'saved_lower_bound',
-            {'width': 3, 'color': (0, 180, 0), 'style': Qt.DashLine})
 
         self.observed_spectrum_pen = pens_dict.get(
             'observed_spectrum', {'color': (0, 0, 180, 80)})
@@ -125,6 +118,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.upper_region_brush = pens_dict.get(
             'upper_region', (0, 0, 255, 50))
+
+        self.saved_feature_brush = pens_dict.get(
+            'saved_feature', (0, 180, 0, 75))
 
     def _init_plot_widget(self):
         """Format the plotting widget and plot place holder objects
@@ -183,7 +179,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 item = bound_list.pop()
                 self.graph_widget.removeItem(item)
 
-    def plot_feature_pew(self):
+    def plot_saved_feature(self):
         """Clear any plotted feature boundaries from the plot"""
 
         # Get nearest measured wavelengths to the specified feature bounds
@@ -198,7 +194,7 @@ class MainWindow(QtWidgets.QMainWindow):
             x=self.current_spectrum.rest_wave[i_start: i_end + 1],
             y=self.current_spectrum.rest_flux[i_start: i_end + 1])
 
-        pfill = pg.FillBetweenItem(phigh, plow, brush=(0, 180, 0, 75))
+        pfill = pg.FillBetweenItem(phigh, plow, brush=self.saved_feature_brush)
         self.plotted_feature_bounds[self.current_feat_name] = [plow, phigh, pfill]
         self.graph_widget.addItem(pfill)
 
@@ -256,17 +252,41 @@ class MainWindow(QtWidgets.QMainWindow):
     # Data handling and measurement tabulation
     ###########################################################################
 
+    def _get_feat_name(self, index):
+        """Get the name of a feature by it's index
+
+        Args:
+            index (int): The index of the feature
+
+        Returns:
+            The feature name as a string
+        """
+
+        return list(self._config['features'].keys())[index]
+
+    def _get_feat_def(self, index):
+        """Get the name of a feature by it's index
+
+        Args:
+            index (int): The index of the feature
+
+        Returns:
+            The feature definition as a dictionary
+        """
+
+        return list(self._config['features'].values())[index]
+
     @property
     def current_feat_name(self):
         """The name of the current feature"""
 
-        return list(self._config['features'].keys())[self.current_feat_idx]
+        return self._get_feat_name(self.current_feat_idx)
 
     @property
     def current_feat_def(self):
         """The definition of the current feature as a dict"""
 
-        return list(self._config['features'].values())[self.current_feat_idx]
+        return self._get_feat_def(self.current_feat_idx)
 
     def _reset_measurement_labels(self):
         """Update labels to display measurement results."""
@@ -374,12 +394,12 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             raise ValueError('Direction must be ``forward`` or ``reverse``')
 
-        index = self.current_feat_idx
+        new_index = self.current_feat_idx
         while True:
-            index += step
+            new_index += step
 
             # Stop if on the last feature
-            if not 0 <= index <= len(self._config['features']) - 1:
+            if not 0 <= new_index <= len(self._config['features']) - 1:
                 if on_fail == 'raise':
                     raise FeatureNotObserved
 
@@ -393,7 +413,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 guess_feature_bounds(
                     self.current_spectrum.bin_wave,
                     self.current_spectrum.bin_flux,
-                    self.current_feat_def
+                    self._get_feat_def(new_index)
                 )
 
             except FeatureNotObserved:
@@ -401,7 +421,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             break
 
-        self.current_feat_idx = index
+        self.current_feat_idx = new_index
         self._reset_measurement_labels()
         self.current_feat_results = None
         self.reset_plot()
@@ -537,7 +557,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_feature_end_label.setText(str(upper_bound_loc))
 
         # Plot gaussian fit of the feature
-        self.plot_feature_pew()
+        self.plot_saved_feature()
         self._reset_measurement_labels()
         self.clear_feature_fits()
         self._iterate_feature('forward', 'None')

@@ -9,6 +9,7 @@ prepare:
   bin_method: median
 
 # Definitions of the features we want to investigate
+# Inspection is performed in the order they are defined below
 features:
   pW1:
     feature_id: Ca ii H&K
@@ -17,7 +18,7 @@ features:
     upper_blue: 3800
     lower_red: 3900
     upper_red: 4100
-  
+
   pW2:
     feature_id: Si ii λ4130
     restframe: 4129.78
@@ -25,7 +26,7 @@ features:
     upper_blue: 4000
     lower_red: 4000
     upper_red: 4150
-  
+
   pW3:
     feature_id: Mg ii, Fe ii
     restframe: 4481.00
@@ -33,7 +34,7 @@ features:
     upper_blue: 4150
     lower_red: 4450
     upper_red: 4700
-  
+
   pW4:
     feature_id: Fe ii, Si ii
     restframe: 5169.00
@@ -41,7 +42,7 @@ features:
     upper_blue: 4700
     lower_red: 5050
     upper_red: 5550
-  
+
   pW5:
     feature_id: S ii λ5449, λ5622
     restframe: 5535.5   # [5449 + 5622] / 2
@@ -49,7 +50,7 @@ features:
     upper_blue: 5300
     lower_red: 5500
     upper_red: 5700
-  
+
   pW6:
     feature_id: Si ii λ5972
     restframe: 5971.89
@@ -57,7 +58,7 @@ features:
     upper_blue: 5700
     lower_red: 5800
     upper_red: 6000
-  
+
   pW7:
     feature_id: Si ii λ6355
     restframe: 6356.08
@@ -65,7 +66,7 @@ features:
     upper_blue: 6000
     lower_red: 6200
     upper_red: 6600
-  
+
   pW8:
     feature_id: Ca ii IR triplet
     restframe: 8578.79
@@ -74,16 +75,9 @@ features:
     lower_red: 8200
     upper_red: 8900
 
+# Style arguments for the plotting elements
 pens:
-  saved_upper_bound:
-    width: 3
-    color: [0, 180, 0, 75]
-
-  saved_lower_bound:
-    width: 3
-    color: [0, 180, 0, 75]
-
-  observed_spectrum: 
+  observed_spectrum:
     color: [0, 0, 180, 80]
 
   binned_spectrum:
@@ -100,6 +94,10 @@ pens:
   upper_bound:
     width: 3
     color: r
+
+  # The below represent shaded regions and only colors can be set
+  saved_feature:
+    [0, 180, 0, 75]
 
   lower_region:
     [255, 0, 0, 50]
