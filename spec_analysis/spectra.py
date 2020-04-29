@@ -155,10 +155,10 @@ from pathlib import Path
 
 import numpy as np
 import sfdmap
+from scipy.ndimage.filters import gaussian_filter, generic_filter, median_filter
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
-from . import binning
 from .exceptions import FeatureNotObserved, SamplingRangeError
 from .features import ObservedFeature
 
@@ -308,21 +308,17 @@ class Spectrum:
         bins = np.arange(min_wave, max_wave + 1, bin_size)
 
         if bin_method == 'sum':
-            self.bin_wave, self.bin_flux = binning.bin_sum(
-                self.rest_wave, self.rest_flux, bins)
+            self.bin_flux = generic_filter(self.rest_flux, sum, bin_size)
 
         elif bin_method == 'average':
-            self.bin_wave, self.bin_flux = binning.bin_avg(
-                self.rest_wave, self.rest_flux, bins)
+            self.bin_flux = generic_filter(self.rest_flux, np.average, bin_size)
 
         elif bin_method == 'gauss':
-            self.bin_wave, self.bin_flux = binning.bin_gaussian(
-                self.rest_wave, self.rest_flux, bin_size)
+            self.bin_flux = gaussian_filter(self.rest_flux, bin_size)
 
         elif bin_method == 'median':
-            self.bin_wave, self.bin_flux = binning.bin_median(
-                self.rest_wave, self.rest_flux, bin_size)
 
+            self.bin_flux = median_filter(self.rest_flux, bin_size)
         else:
             raise ValueError(f'Unknown method {bin_method}')
 

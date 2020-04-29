@@ -16,7 +16,8 @@ from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
 from ..exceptions import FeatureNotObserved, SamplingRangeError
-from ..spectra import SpectraIterator, guess_feature_bounds
+from ..spectra import SpectraIterator
+from ..feat_utils import guess_feature_bounds
 
 _file_dir = Path(__file__).resolve().parent
 _gui_layouts_dir = _file_dir / 'gui_layouts'
