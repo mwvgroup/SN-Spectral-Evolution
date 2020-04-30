@@ -1,0 +1,5 @@
+exclude_patterns:
+  - "tests/"
+  - "docs/"
+  - "scripts/"
+  - "notebooks/"
