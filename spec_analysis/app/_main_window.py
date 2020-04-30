@@ -170,8 +170,20 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         while self.plotted_feature_fits:
             self.plotted_feature_fits.pop().clear()
 
-    def clear_all_feature_bounds(self):
-        """Clear any plotted feature boundaries from the plot"""
+    def clear_plotted_pew(self, clear_single=False):
+        """Clear any plotted feature boundaries from the plot
+
+        Args:
+            clear_single (bool): Clear only the current feature (False)
+        """
+
+        if clear_single:
+            bound_list = self.plotted_feature_bounds.get(self.current_feat_name, [])
+            while bound_list:
+                item = bound_list.pop()
+                self.graph_widget.removeItem(item)
+
+            return
 
         for bound_list in self.plotted_feature_bounds.values():
             while bound_list:
@@ -180,6 +192,8 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
 
     def plot_saved_feature(self):
         """Clear any plotted feature boundaries from the plot"""
+
+        self.clear_plotted_pew(clear_single=True)
 
         # Get nearest measured wavelengths to the specified feature bounds
         i_start = np.abs(self.current_spectrum.rest_wave - self.lower_bound_line.value()).argmin()
@@ -345,7 +359,7 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         """
 
         self.clear_feature_fits()
-        self.clear_all_feature_bounds()
+        self.clear_plotted_pew()
         self._write_results_to_file()
 
         # Determine spectra with existing measurements
