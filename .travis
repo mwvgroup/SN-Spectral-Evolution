@@ -1,12 +1,28 @@
-# Configuration file for continuous integration testing with travis
-
 language: python
 
 python:
-  - "3.7-dev"
+  - '3.7'
+
+os:
+  - linux
 
 install:
-  pip install requirements.txt
+  - pip install -r requirements.txt
+  - pip install coverage
+
+  # Install codeclimate API
+  # https://docs.codeclimate.com/
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+
+before_script:
+  - ./cc-test-reporter before-build
 
 script:
-  - pytest
+  - coverage run --source='.' manage.py test broker_web
+  - coverage xml
+
+after_script:
+  # So that we can read off test coverage from the travis build
+  - coverage report
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
