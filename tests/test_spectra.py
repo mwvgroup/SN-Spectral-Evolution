@@ -10,6 +10,7 @@ import numpy as np
 from scipy.ndimage.filters import gaussian_filter, generic_filter, median_filter
 
 from spec_analysis import simulate
+from spec_analysis.features import ObservedFeature
 from spec_analysis.spectra import Spectrum, dust_map
 
 
@@ -150,3 +151,68 @@ class FluxBinning(TestCase):
 
         kwargs = dict(bin_method='fake_method', bin_size=self.bin_size)
         self.assertRaises(ValueError, self.spectrum.prepare_spectrum, **kwargs)
+
+
+class FeatureSampling(TestCase):
+
+    @classmethod
+    def setUp(cls):
+        """Define a mock spectrum with a gaussian feature and measure the feature"""
+
+        wave = np.arange(4000, 5000)
+
+        # Define feature using rest and observer frame average wavelength
+        cls.lambda_rest = np.mean(wave)
+        cls.lambda_observed = cls.lambda_rest - 10
+        flux, eflux = simulate.gaussian(wave, mean=cls.lambda_observed, stddev=100)
+
+        # Prepare the test spectrum object
+        cls.spectrum = Spectrum(
+            wave,
+            flux,
+            ra=0,
+            dec=-1,
+            z=0,
+        )
+        cls.spectrum.prepare_spectrum()
+
+        # Measure the simulated feature
+        cls.nstep = 5
+        cls.callable_returns = []
+        cls.spectrum.sample_feature_properties(
+            feat_start=cls.spectrum.rest_wave[20],
+            feat_end=cls.spectrum.rest_wave[-20],
+            rest_frame=cls.lambda_rest,
+            callable=cls.callable_returns.append,
+            nstep=cls.nstep
+        )
+
+    def test_sampling_steps_zero(self):
+        """Test only one sample is taken when ``nstep=0``"""
+
+        samples = []
+        self.spectrum.sample_feature_properties(
+            feat_start=self.spectrum.rest_wave[20],
+            feat_end=self.spectrum.rest_wave[-20],
+            rest_frame=self.lambda_rest,
+            callable=samples.append,
+            nstep=0
+        )
+
+        self.assertEqual(1, len(samples))
+
+    def test_sampling_steps_nonzero(self):
+        """Test number of samples are taken for nozero number of steps"""
+
+        nsamples = (2 * self.nstep + 1) ** 2
+        self.assertEqual(
+            len(self.callable_returns), nsamples,
+            'Incorrect number of samples returned')
+
+    def test_callable_argument_type(self):
+        """Test callable is passed an ``ObservedFeature`` argument"""
+
+        self.assertIsInstance(
+            self.callable_returns[0], ObservedFeature,
+            'Callable passed unexpected argument type'
+        )

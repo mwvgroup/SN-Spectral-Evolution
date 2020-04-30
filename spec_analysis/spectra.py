@@ -309,7 +309,7 @@ class Spectrum:
                 sample_start_idx = idx_start + i
                 sample_end_idx = idx_end + j
 
-                if sample_start_idx < 0 or sample_end_idx >= len(self.bin_wave):
+                if sample_start_idx < 0 or sample_end_idx >= len(self.rest_wave):
                     raise SamplingRangeError
 
                 sample_wave = self.rest_wave[sample_start_idx: sample_end_idx]
@@ -404,7 +404,8 @@ class SpectraIterator:
                 spectrum = Spectrum(
                     spectrum_data['wavelength'],
                     spectrum_data['flux'],
-                    **spectrum_data.meta  # meta should include ra, dec, and z
+                    **spectrum_data.meta,  # meta should include ra, dec, and z
+                    meta=spectrum_data.meta
                 )
 
                 setattr(spectrum, self.group_by, group_by_val[0])
