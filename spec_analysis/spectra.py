@@ -63,16 +63,16 @@ the current spectrum, and the feature's rest frame wavelength.
    feat_end = spectrum.rest_wave[-10]
    spectrum.sample_feature_properties(feat_start, feat_end, lambda_rest)
 
-Custom Callables
+Custom Callbacks
 ^^^^^^^^^^^^^^^^
 
 If you want to inject your own custom calculations to the sampling process,
-this can be added by specifying the ``callable`` argument.
+this can be added by specifying the ``callback`` argument.
 
 .. code-block:: python
    :linenos:
 
-   def my_callable(feature):
+   def my_callback(feature):
        '''This function will be called for every iteration / sample
 
        Args:
@@ -81,7 +81,8 @@ this can be added by specifying the ``callable`` argument.
 
        pass
 
-   spectrum.sample_feature_properties(feat_start, feat_end, rest_frame)
+   spectrum.sample_feature_properties(
+       feat_start, feat_end, rest_frame, callback=my_callback)
 
 Iterating over a Data Release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -269,7 +270,7 @@ class Spectrum:
         self._bin_spectrum(bin_size=bin_size, bin_method=bin_method.lower())
 
     def sample_feature_properties(
-            self, feat_start, feat_end, rest_frame, nstep=0, callable=None):
+            self, feat_start, feat_end, rest_frame, nstep=0, callback=None):
         """Calculate the properties of a single feature in a spectrum
 
         Velocity values are returned in km / s. Error values are determined
@@ -281,7 +282,7 @@ class Spectrum:
             feat_end    (float): Ending wavelength of the feature
             rest_frame  (float): Rest frame location of the specified feature
             nstep         (int): Number of samples taken in each direction
-            callable (callable): Call a function after every iteration.
+            callback (callable): Call a function after every iteration.
                 Function is passed the sampled feature.
 
         Returns:
@@ -326,8 +327,8 @@ class Spectrum:
                 pequiv_width.append(feature.pew)
                 area.append(feature.area)
 
-                if callable:
-                    callable(feature)
+                if callback:
+                    callback(feature)
 
         avg_velocity = np.mean(velocity)
         avg_ew = np.mean(pequiv_width)

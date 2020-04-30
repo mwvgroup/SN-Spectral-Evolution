@@ -98,7 +98,7 @@ To run an analysis script, the syntax is as follows:
 
 .. code-block:: bash
 
-   python [PATH TO SCRIPT] [PATH TO CONFIG FILE] [PATH OF OUTPUT FILE]
+   python scripts/[NAME OF SCRIPT] [PATH TO CONFIG FILE] [PATH OF OUTPUT FILE]
 
 If you get interrupted during the analysis process, re-running the above
 command with the same output file path will resume your analysis from the last

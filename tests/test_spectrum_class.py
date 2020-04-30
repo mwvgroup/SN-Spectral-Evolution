@@ -178,12 +178,12 @@ class FeatureSampling(TestCase):
 
         # Measure the simulated feature
         cls.nstep = 5
-        cls.callable_returns = []
+        cls.callback_returns = []
         cls.spectrum.sample_feature_properties(
             feat_start=cls.spectrum.rest_wave[20],
             feat_end=cls.spectrum.rest_wave[-20],
             rest_frame=cls.lambda_rest,
-            callable=cls.callable_returns.append,
+            callback=cls.callback_returns.append,
             nstep=cls.nstep
         )
 
@@ -195,7 +195,7 @@ class FeatureSampling(TestCase):
             feat_start=self.spectrum.rest_wave[20],
             feat_end=self.spectrum.rest_wave[-20],
             rest_frame=self.lambda_rest,
-            callable=samples.append,
+            callback=samples.append,
             nstep=0
         )
 
@@ -206,13 +206,13 @@ class FeatureSampling(TestCase):
 
         nsamples = (2 * self.nstep + 1) ** 2
         self.assertEqual(
-            len(self.callable_returns), nsamples,
+            len(self.callback_returns), nsamples,
             'Incorrect number of samples returned')
 
-    def test_callable_argument_type(self):
-        """Test callable is passed an ``ObservedFeature`` argument"""
+    def test_callback_argument_type(self):
+        """Test callback is passed an ``ObservedFeature`` argument"""
 
         self.assertIsInstance(
-            self.callable_returns[0], ObservedFeature,
-            'Callable passed unexpected argument type'
+            self.callback_returns[0], ObservedFeature,
+            'Callback passed unexpected argument type'
         )
