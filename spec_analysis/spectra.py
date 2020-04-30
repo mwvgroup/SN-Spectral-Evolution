@@ -2,11 +2,11 @@
 # -*- coding: UTF-8 -*-
 
 """The ``spectra`` module provides object representations of spectra and is
-responsible for processing spectra (e.g. extinction correction, rest-framing,
-...) and sampling any spectral features.
+responsible for processing spectra (e.g. extinction correction) and sampling
+any spectral features.
 
-.. note:: Where applicable, this module uses the Schlegel+ 98 dust map
-   and Fitzpatrick+ 99 extinction law
+.. note:: Where applicable, this module uses the Schlegel et al. 1998 dust map
+   and Fitzpatrick et al. 1999 extinction law.
 
 Usage Examples
 --------------
@@ -27,40 +27,30 @@ in the observer frame.
    :linenos:
 
    import numpy as np
-   from spec_analysis.spectra import Spectrum
-   wavelengths = np.arange(1000, 2000)
-   flux = np.random.random(len(wavelengths))
-   spectrum = Spectrum(
-       wave=wavelengths,
-       flux=flux,
-       z=0.1,
-       ra=0.15,
-       dec=-0.2
-   )
 
-To correct for MW extinction and bin the spectrum,
-use the ``prepare_spectrum`` method. Several filters are available for
-binning the spectrum. Here we use a ``median filter`` with a window size of
-``10``:
+   from spec_analysis import simulate, spectra
+
+   # Define feature using rest and observer frame average wavelength
+   wave = np.arange(4000, 5000)
+   lambda_rest = np.mean(wave)
+   lambda_observed = lambda_rest - 10
+   flux, eflux = simulate.gaussian(wave, mean=lambda_observed, stddev=100)
+
+   # Prepare a demo spectrum object
+   cls.spectrum = Spectrum(wave, flux, ra=0, dec=-1, z=0)
+
+To correct for MW extinction and bin the spectrum, use the ``prepare_spectrum``
+method. Several filters are available for binning the spectrum. Here we use a
+``median filter`` with a window size of ``10``:
 
 .. code-block:: python
    :linenos:
 
    spectrum.prepare_spectrum(bin_size=10, method='median')
 
-The rest framed spectrum can then be binned to a lower resolution using the
-``_bin_spectrum`` method:
-
-.. code-block:: python
-   :linenos:
-
-   spectrum._bin_spectrum()
-   print(spectrum.bin_wave is None)
-   print(spectrum.bin_flux is None)
-
-.. note:: The ``prepare_spectrum`` method is available as a convenience method
-   that is equivalent to calling the ``_correct_extinction`` and ``_bin_spectrum``
-   methods successively.
+   rest_wave = spectrum.rest_wave  # Rest-framed wavelengths
+   rest_flux = spectrum.rest_flux  # Extinction corrected flux
+   bin_flux = spectrum.bin_flux    # Filtered, extinction corrected flux
 
 Once the spectrum is prepared, you can measure it's properties for a given
 feature. This requires knowing the start / end wavelength of the feature in
@@ -69,7 +59,9 @@ the current spectrum, and the feature's rest frame wavelength.
 .. code-block:: python
    :linenos:
 
-   spectrum.sample_feature_properties(feat_start, feat_end, rest_frame)
+   feat_start = spectrum.rest_wave[10]
+   feat_end = spectrum.rest_wave[-10]
+   spectrum.sample_feature_properties(feat_start, feat_end, lambda_rest)
 
 Custom Callables
 ^^^^^^^^^^^^^^^^
@@ -277,7 +269,7 @@ class Spectrum:
         self._bin_spectrum(bin_size=bin_size, bin_method=bin_method.lower())
 
     def sample_feature_properties(
-            self, feat_start, feat_end, rest_frame, nstep=5, callable=None):
+            self, feat_start, feat_end, rest_frame, nstep=0, callable=None):
         """Calculate the properties of a single feature in a spectrum
 
         Velocity values are returned in km / s. Error values are determined

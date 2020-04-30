@@ -1,11 +1,19 @@
 # !/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""The ``features`` module provides logic for measuring the properties of
+"""The ``features`` is responsible for measuring the properties of
 individual spectral features. Individual classes are used to represent separate
-calculations of feature properties. These classes may be ued individually.
-However, it is recommended you use the ``ObservedFeature`` class which combines
+calculations of feature properties. These classes may be used individually,
+however, it is recommended you use the ``ObservedFeature`` class which combines
 all of the calculations into a single object.
+
+.. autosummary::
+   :nosignatures:
+
+   spec_analysis.features.FeatureArea
+   spec_analysis.features.FeaturePEW
+   spec_analysis.features.FeatureVelocity
+   spec_analysis.features.ObservedFeature
 
 Usage Examples
 --------------
@@ -61,7 +69,6 @@ This function is accessible programmatically as
 using
 
 .. code-block:: python
-   :linenos:
 
    gauss_fit = feature.gaussian_fit()
 

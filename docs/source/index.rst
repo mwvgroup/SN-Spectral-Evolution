@@ -31,8 +31,8 @@ function of redshift and host galaxy properties.
    :caption: API Documentation:
 
    api_documentation/overview
-   api_documentation/simulate
+   api_documentation/exceptions
    api_documentation/features
    api_documentation/spectra
    api_documentation/app
-   api_documentation/exceptions
+   api_documentation/simulate
