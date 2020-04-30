@@ -137,6 +137,8 @@ class Velocity(TestCase):
         """Simulate gaussian feature"""
 
         cls.wave = np.arange(1000, 2000)
+
+        # Rest and observer frame wavelengths
         cls.lambda_rest = np.mean(cls.wave)
         cls.lambda_observed = cls.lambda_rest - 100
 
@@ -144,7 +146,7 @@ class Velocity(TestCase):
             cls.wave, mean=cls.lambda_observed, stddev=100)
 
         # We don't care about differences between the normal and binned flux
-        # for these tests, so we make them the sanme for simplicity
+        # for these tests, so we make them the same for simplicity
         cls.feature = features.FeatureVelocity(
             cls.wave, cls.flux, cls.flux, cls.lambda_rest)
 

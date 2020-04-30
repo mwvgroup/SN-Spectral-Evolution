@@ -46,30 +46,30 @@ By default, these attributes are ``None``:
    print(spectrum.bin_flux is None)   # The binned fluxes
 
 To correct the spectrum for extinction and shift it to the rest frame, we use
-the ``correct_extinction`` method:
+the ``_correct_extinction`` method:
 
 .. code-block:: python
    :linenos:
 
    # Uses Schlegel+ 98 dust map and Fitzpatrick+ 99 extinction law
-   spectrum.correct_extinction()
+   spectrum._correct_extinction()
 
    print(spectrum.rest_wave is None)  # Rest framed wavelengths
    print(spectrum.rest_flux is None)  # Rest framed, extinction corrected flux
 
 
 The rest framed spectrum can then be binned to a lower resolution using the
-``bin_spectrum`` method:
+``_bin_spectrum`` method:
 
 .. code-block:: python
    :linenos:
 
-   spectrum.bin_spectrum(bin_size=10, method='median')
+   spectrum._bin_spectrum(bin_size=10, method='median')
    print(spectrum.bin_wave is None)
    print(spectrum.bin_flux is None)
 
 .. note:: The ``prepare_spectrum`` method is available as a convenience method
-   that is equivalent to calling the ``correct_extinction`` and ``bin_spectrum``
+   that is equivalent to calling the ``_correct_extinction`` and ``_bin_spectrum``
    methods successively.
 
 Once the spectrum is prepared, you can measure it's properties for a given
@@ -159,67 +159,12 @@ from scipy.ndimage.filters import gaussian_filter, generic_filter, median_filter
 from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
-from .exceptions import FeatureNotObserved, SamplingRangeError
+from .exceptions import SamplingRangeError
 from .features import ObservedFeature
 
 _file_dir = Path(__file__).resolve().parent
 _dust_dir = _file_dir / 'schlegel98_dust_map'
 dust_map = sfdmap.SFDMap(_dust_dir)
-
-
-def find_peak_wavelength(wave, flux, lower_bound, upper_bound, behavior='min'):
-    """Return wavelength of the maximum flux within given wavelength bounds
-
-    The behavior argument can be used to select the 'min' or 'max' wavelength
-    when there are multiple wavelengths having the same peak flux value. The
-    default behavior is 'min'.
-
-    Args:
-        wave       (ndarray): An array of wavelength values
-        flux       (ndarray): An array of flux values
-        lower_bound  (float): Lower wavelength boundary
-        upper_bound  (float): Upper wavelength boundary
-        behavior       (str): Return the 'min' or 'max' wavelength
-
-    Returns:
-        The wavelength for the maximum flux value
-    """
-
-    # Make sure the given spectrum spans the given wavelength bounds
-    if not any((wave > lower_bound) & (wave < upper_bound)):
-        raise FeatureNotObserved('Feature not in spectral wavelength range.')
-
-    # Select the portion of the spectrum within the given bounds
-    feature_indices = (lower_bound <= wave) & (wave <= upper_bound)
-    feature_flux = flux[feature_indices]
-    feature_wavelength = wave[feature_indices]
-
-    # Get peak according to specified behavior
-    peak_indices = np.argwhere(feature_flux == np.max(feature_flux))
-    behavior_func = getattr(np, behavior)
-    return behavior_func(feature_wavelength[peak_indices])
-
-
-def guess_feature_bounds(wave, flux, feature):
-    """Get the start and end wavelengths / flux for a given feature
-
-    Args:
-        wave (ndarray): An array of wavelength values
-        flux (ndarray): An array of flux values
-        feature (dict): A dictionary defining feature parameters
-
-    Returns:
-        - The starting wavelength of the feature
-        - The ending wavelength of the feature
-    """
-
-    feat_start = find_peak_wavelength(
-        wave, flux, feature['lower_blue'], feature['upper_blue'], 'min')
-
-    feat_end = find_peak_wavelength(
-        wave, flux, feature['lower_red'], feature['upper_red'], 'max')
-
-    return feat_start, feat_end
 
 
 class Spectrum:
@@ -242,21 +187,22 @@ class Spectrum:
         self.ra = ra
         self.dec = dec
         self.z = z
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
         # Place holders for results of intermediate analyses
-        self.bin_wave, self.bin_flux = None, None
-        self.rest_flux, self.rest_wave = None, None
+        self.rest_wave = None
+        self.rest_flux = None
+        self.bin_flux = None
         self.feature_bounds = []
 
-    def correct_extinction(self, rv):
+    def _correct_extinction(self, rv=3.1):
         """Rest frame spectra and correct for MW extinction
 
         Spectra are rest-framed and corrected for MW extinction using the
         Schlegel et al. 98 dust map and the Fitzpatrick et al. 99 extinction
-        law. if rv is not given, a value of 1.7 is used for E(B - V) > .3 and
-        a value of 3.1 is used otherwise. Results are set to the
+        law. if rv is not given, a value of 3.1 is used. Results are set to the
         ``self.rest_wave`` and ``self.rest_flux`` attributes.
 
         Args:
@@ -275,7 +221,7 @@ class Spectrum:
         self.rest_wave = self.wave / (1 + self.z)
         self.rest_flux = self.flux * 10 ** (0.4 * mag_ext)
 
-    def bin_spectrum(self, bin_size, bin_method):
+    def _bin_spectrum(self, bin_size, bin_method):
         """Bin a spectrum to a given resolution
 
         Bins the values of ``self.rest_wave`` and ``self.rest_flux`` and sets
@@ -293,20 +239,6 @@ class Spectrum:
         if self.rest_wave is None or self.rest_flux is None:
             raise RuntimeError('Spectrum must be corrected for extinction before binning')
 
-        if bin_size == 0:
-            self.bin_wave, self.bin_flux = self.rest_wave, self.rest_flux
-            return
-
-        # Don't apply binning if requested resolution is the same or less than
-        # the observed wavelength resolution
-        if (bin_method != 'gauss') and any(bin_size <= self.rest_wave[1:] - self.rest_wave[:-1]):
-            self.bin_wave = self.rest_wave
-            self.bin_flux = self.rest_flux
-
-        min_wave = np.floor(np.min(self.rest_wave))
-        max_wave = np.floor(np.max(self.rest_wave))
-        bins = np.arange(min_wave, max_wave + 1, bin_size)
-
         if bin_method == 'sum':
             self.bin_flux = generic_filter(self.rest_flux, sum, bin_size)
 
@@ -317,16 +249,13 @@ class Spectrum:
             self.bin_flux = gaussian_filter(self.rest_flux, bin_size)
 
         elif bin_method == 'median':
-
             self.bin_flux = median_filter(self.rest_flux, bin_size)
+
         else:
             raise ValueError(f'Unknown method {bin_method}')
 
     def prepare_spectrum(self, rv=3.1, bin_size=5, bin_method='median'):
-        """Correct for extinction, then rest-frame and bin the spectrum
-
-        This is a convenience function for calling the ``correct_extinction``
-        and ``bin_spectrum`` methods.
+        """Correct for extinction, rest-frame, and bin the spectrum
 
         Args:
             bin_size (float): Bin size in units of Angstroms
@@ -334,51 +263,11 @@ class Spectrum:
             rv       (float): Rv value to use for extinction (Default: 3.1)
         """
 
-        self.correct_extinction(rv=rv)
-        self.bin_spectrum(bin_size=bin_size, bin_method=bin_method.lower())
+        self._correct_extinction(rv=rv)
+        self._bin_spectrum(bin_size=bin_size, bin_method=bin_method.lower())
 
-    def iter_measured_feature(self, feat_end, feat_start, nstep, rest_frame):
-        """Calculate the properties of a single feature in a spectrum
-
-        Args:
-            feat_start (float): Starting wavelength of the feature
-            feat_end   (float): Ending wavelength of the feature
-            rest_frame (float): Rest frame location of the specified feature
-            nstep        (int): Number of samples taken in each direction
-
-        Yields:
-            An ``ObservedFeature`` with sampled properties
-        """
-
-        # Get indices for beginning and end of the feature
-        idx_start = np.where(self.bin_wave == feat_start)[0][0]
-        idx_end = np.where(self.bin_wave == feat_end)[0][0]
-        if idx_end - idx_start <= 10:
-            raise ValueError('Range too small. Please select a wider range')
-
-        # We vary the beginning and end of the feature to estimate the error
-
-        for i in np.arange(-nstep, nstep + 1):
-            for j in np.arange(nstep, -nstep - 1, -1):
-                # Get sub-sampled wavelength/flux
-                sample_start_idx = idx_start + i
-                sample_end_idx = idx_end + j
-
-                if sample_start_idx < 0 or sample_end_idx >= len(self.bin_wave):
-                    raise SamplingRangeError
-
-                nw = self.bin_wave[sample_start_idx: sample_end_idx]
-                nbf = self.bin_flux[sample_start_idx: sample_end_idx]
-                nrf = self.rest_flux[sample_start_idx: sample_end_idx]
-
-                # Determine feature properties
-                feature = ObservedFeature(nw, nrf, nbf)
-                feature.calc_pew()
-                feature.calc_area()
-                feature.calc_velocity(rest_frame)
-                yield feature
-
-    def sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
+    def sample_feature_properties(
+            self, feat_start, feat_end, rest_frame, nstep=5, callable=None):
         """Calculate the properties of a single feature in a spectrum
 
         Velocity values are returned in km / s. Error values are determined
@@ -386,10 +275,12 @@ class Spectrum:
         boundaries ``nstep`` flux measurements in either direction.
 
         Args:
-            feat_start (float): Starting wavelength of the feature
-            feat_end   (float): Ending wavelength of the feature
-            rest_frame (float): Rest frame location of the specified feature
-            nstep        (int): Number of samples taken in each direction
+            feat_start  (float): Starting wavelength of the feature
+            feat_end    (float): Ending wavelength of the feature
+            rest_frame  (float): Rest frame location of the specified feature
+            nstep         (int): Number of samples taken in each direction
+            callable (callable): Call a function after every iteration.
+                Function is passed the sampled feature.
 
         Returns:
             - The line velocity
@@ -403,11 +294,38 @@ class Spectrum:
             - The sampling error in calc_area
         """
 
+        # Get indices for beginning and end of the feature
+        idx_start = np.where(self.rest_wave == feat_start)[0][0]
+        idx_end = np.where(self.rest_wave == feat_end)[0][0]
+        if idx_end - idx_start <= 10:
+            raise ValueError('Range too small. Please select a wider range')
+
+        # We vary the beginning and end of the feature to estimate the error
         velocity, pequiv_width, area = [], [], []
-        for feature in self.iter_measured_feature(feat_end, feat_start, nstep, rest_frame):
-            velocity.append(feature.velocity)
-            pequiv_width.append(feature.pew)
-            area.append(feature.area)
+        for i in np.arange(-nstep, nstep + 1):
+            for j in np.arange(nstep, -nstep - 1, -1):
+
+                # Get sub-sampled wavelength/flux
+                sample_start_idx = idx_start + i
+                sample_end_idx = idx_end + j
+
+                if sample_start_idx < 0 or sample_end_idx >= len(self.bin_wave):
+                    raise SamplingRangeError
+
+                sample_wave = self.rest_wave[sample_start_idx: sample_end_idx]
+                sample_bflux = self.bin_flux[sample_start_idx: sample_end_idx]
+                sample_rflux = self.rest_flux[sample_start_idx: sample_end_idx]
+
+                # Determine feature properties
+                feature = ObservedFeature(
+                    sample_wave, sample_rflux, sample_bflux, rest_frame)
+
+                velocity.append(feature.velocity)
+                pequiv_width.append(feature.pew)
+                area.append(feature.area)
+
+                if callable:
+                    callable(feature)
 
         avg_velocity = np.mean(velocity)
         avg_ew = np.mean(pequiv_width)

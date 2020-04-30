@@ -260,7 +260,11 @@ class FeatureVelocity(FeaturePEW):
         return self._fit_gauss_params()[3]
 
     def gaussian_fit(self):
-        """The gaussian fit evaluated for the feature wavelengths"""
+        """Evaluate the gaussian fit of the normalized flux for feature wavelengths
+
+        Returns:
+            An array of normalized flux values
+        """
 
         return gaussian(self.wave, *self._fit_gauss_params())
 
