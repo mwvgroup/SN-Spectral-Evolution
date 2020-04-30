@@ -2,38 +2,35 @@
 # -*- coding: UTF-8 -*-
 
 """The ``features`` module provides logic for measuring the properties of
-individual spectral features.
+individual spectral features. Individual classes are used to represent separate
+calculations of feature properties. These classes may be ued individually.
+However, it is recommended you use the ``ObservedFeature`` class which combines
+all of the calculations into a single object.
 
 Usage Examples
 --------------
 
-The wavelengths and flux values for individual features are represented by the
-``ObservedFeature`` class. Included in this class are methods for calculating
-the area, pseudo equivalent width (PEW), and flux of the feature.
+Included in the ``ObservedFeature`` class is the ability to calculate
+the area, pseudo equivalent width (PEW), and flux of a given feature.
+Feature classes are instantiated using the rest frame wavelength, flux,
+and binned flux (e.g., the flux through a median filter).
 
 .. code-block:: python
    :linenos:
 
    import numpy as np
+   from scipy.ndimage.filters import median_filter
+
    from spec_analysis.features import find_peak_wavelength
    from spec_analysis.simulate import gaussian
 
-   # First we simulate a gaussian absorption feature
+   wave = np.arange(1000, 2000)
    flux, flux_err = gaussian(wave, stddev=100)
-   feature = ObservedFeature(wave, flux)
+   bin_flux = median_filter(flux, size=10)
 
-   # Next we measure the properties of the feature
-   pseudo_equivalent_width = feature.calc_pew()
-   area = feature.calc_area()
-   velocity = feature.calc_velocity()
+   feature = ObservedFeature(wave, flux, bin_flux)
 
-Note that the velocity is determined by fitting an inverted Gaussian of the
-form
-
-.. math:: - A * e^{(-(x - \mu)^2 / (2 \sigma^2)} + c
-
-Various attributes are used to store the intermediate results of these
-calculations. For example:
+Feature properties can be accessed using attributes:
 
 .. code-block:: python
    :linenos:
@@ -42,17 +39,31 @@ calculations. For example:
    area = feature.area            # Feature area
 
    # From the PEW calculation
-   continuum = feature.continuum  # Continuum flux per wavelength
+   continuum = feature.continuum  # Sudo continuum flux per wavelength
    norm_flux = feature.norm_flux  # Normalized flux per wavelength
    pew = feature.pew              # Pseudo equivalent width
 
    # From the velocity calculation
    velocity = feature.velocity    # velocity of the feature in km / s
-   gauss_fit = feature.gauss_fit  # Fitted gaussian evaluate at each wavelength
    amp = feature.gauss_amplitude  # Amplitude of fitted gaussian
    avg = feature.gauss_avg        # Average of fitted gaussian
    stddev = feature.gauss_stddev  # Standard deviation of fitted gaussian
    offset = feature.gauss_offset  # y-offset of fitted gaussian
+
+
+Note that the velocity is determined by fitting the **normalized flux** using
+an inverted Gaussian of the form
+
+.. math:: - A * e^{(-(x - \mu)^2 / (2 \sigma^2)} + c
+
+This function is accessible programmatically as
+``spec_analysis.features.gaussian``, or the evaluated fit can be determined
+using
+
+.. code-block:: python
+   :linenos:
+
+   gauss_fit = feature.gaussian_fit()
 
 API Documentation
 -----------------
@@ -68,7 +79,7 @@ from uncertainties import ufloat
 from uncertainties.unumpy import nominal_values, std_devs
 
 
-def gaussian(x, depth, _avg, _std, _offset):
+def gaussian(x, depth, avg, std, offset):
     """Evaluate a negative gaussian
 
     f = -depth * e^(-((x - avg)^2) / (2 * std ** 2)) + offset
@@ -84,7 +95,7 @@ def gaussian(x, depth, _avg, _std, _offset):
         The evaluated gaussian
     """
 
-    return -depth * np.exp(-((x - _avg) ** 2) / (2 * _std ** 2)) + _offset
+    return -depth * np.exp(-((x - avg) ** 2) / (2 * std ** 2)) + offset
 
 
 class FeatureArea:

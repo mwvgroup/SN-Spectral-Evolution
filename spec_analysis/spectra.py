@@ -1,15 +1,19 @@
 # !/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""The ``spectra`` module provides object representations of spectra.
+"""The ``spectra`` module provides object representations of spectra and is
+responsible for processing spectra (e.g. extinction correction, rest-framing,
+...) and sampling any spectral features.
+
+.. note:: Where applicable, this module uses the Schlegel+ 98 dust map
+   and Fitzpatrick+ 99 extinction law
 
 Usage Examples
 --------------
 
-``Spectrum`` objects are used to represent individual spectra. In addition
-to providing the ability to measure individual features, they provided
-functionality for correcting MW extinction, rest framing, and binning the
-spectra (in that specific order). A handful of examples demonstrating this
+``Spectrum`` objects are used to represent individual spectra and provide
+functionality for correcting MW extinction, rest-framing, and binning the
+spectra (**in that specific order!**). A handful of examples demonstrating this
 functionality is provided below:
 
 Working with a Single Spectrum
@@ -34,29 +38,15 @@ in the observer frame.
        dec=-0.2
    )
 
-Values for the rest framed and binned spectrum are stored as attributes.
-By default, these attributes are ``None``:
+To correct for MW extinction and bin the spectrum,
+use the ``prepare_spectrum`` method. Several filters are available for
+binning the spectrum. Here we use a ``median filter`` with a window size of
+``10``:
 
 .. code-block:: python
    :linenos:
 
-   print(spectrum.rest_wave is None)  # Rest framed wavelengths
-   print(spectrum.rest_flux is None)  # Rest framed, extinction corrected flux
-   print(spectrum.bin_wave is None)   # The binned wavelengths
-   print(spectrum.bin_flux is None)   # The binned fluxes
-
-To correct the spectrum for extinction and shift it to the rest frame, we use
-the ``_correct_extinction`` method:
-
-.. code-block:: python
-   :linenos:
-
-   # Uses Schlegel+ 98 dust map and Fitzpatrick+ 99 extinction law
-   spectrum._correct_extinction()
-
-   print(spectrum.rest_wave is None)  # Rest framed wavelengths
-   print(spectrum.rest_flux is None)  # Rest framed, extinction corrected flux
-
+   spectrum.prepare_spectrum(bin_size=10, method='median')
 
 The rest framed spectrum can then be binned to a lower resolution using the
 ``_bin_spectrum`` method:
@@ -64,7 +54,7 @@ The rest framed spectrum can then be binned to a lower resolution using the
 .. code-block:: python
    :linenos:
 
-   spectrum._bin_spectrum(bin_size=10, method='median')
+   spectrum._bin_spectrum()
    print(spectrum.bin_wave is None)
    print(spectrum.bin_flux is None)
 
@@ -79,7 +69,27 @@ the current spectrum, and the feature's rest frame wavelength.
 .. code-block:: python
    :linenos:
 
-   spectrum._sample_feature_properties(feat_start, feat_end, rest_frame)
+   spectrum.sample_feature_properties(feat_start, feat_end, rest_frame)
+
+Custom Callables
+^^^^^^^^^^^^^^^^
+
+If you want to inject your own custom calculations to the sampling process,
+this can be added by specifying the ``callable`` argument.
+
+.. code-block:: python
+   :linenos:
+
+   def my_callable(feature):
+       '''This function will be called for every iteration / sample
+
+       Args:
+           feature (ObservedFeature): The sampled flux as a feature object
+       '''
+
+       pass
+
+   spectrum.sample_feature_properties(feat_start, feat_end, rest_frame)
 
 Iterating over a Data Release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

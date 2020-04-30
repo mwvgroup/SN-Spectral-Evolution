@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""Tests for the ``utils`` module."""
+"""Tests for the ``feat_utils`` module."""
 
 from unittest import TestCase
 
