@@ -9,14 +9,13 @@ import numpy as np
 import pandas as pd
 import pyqtgraph as pg
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import QRegExp, Qt
+from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import QApplication, QMessageBox
-from uncertainties import nominal_value, std_dev
-from uncertainties.unumpy import nominal_values
 
 from ..exceptions import FeatureNotObserved, SamplingRangeError
-from ..spectra import SpectraIterator, guess_feature_bounds
+from ..feat_utils import guess_feature_bounds
+from ..spectra import SpectraIterator
 
 _file_dir = Path(__file__).resolve().parent
 _gui_layouts_dir = _file_dir / 'gui_layouts'
@@ -56,7 +55,7 @@ def get_results_dataframe(out_path: Path = None) -> pd.DataFrame:
 # Note: When update labels in the GUI we call ``QApplication.processEvents()``
 # first to give the GUI a chance to catch up or labels may not update correctly
 # This is a bug is mostly seen on MAC OS with PyQt5 >= 5.11
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
     """The run_sako18spec window for visualizing and measuring spectra"""
 
     def __init__(self, spectra_iter, out_path, config):
@@ -183,11 +182,11 @@ class MainWindow(QtWidgets.QMainWindow):
         """Clear any plotted feature boundaries from the plot"""
 
         # Get nearest measured wavelengths to the specified feature bounds
-        i_start = np.abs(self.current_spectrum.bin_wave - self.lower_bound_line.value()).argmin()
-        i_end = np.abs(self.current_spectrum.bin_wave - self.upper_bound_line.value()).argmin()
+        i_start = np.abs(self.current_spectrum.rest_wave - self.lower_bound_line.value()).argmin()
+        i_end = np.abs(self.current_spectrum.rest_wave - self.upper_bound_line.value()).argmin()
 
         phigh = self.graph_widget.plot(
-            x=self.current_spectrum.bin_wave[[i_start, i_end]],
+            x=self.current_spectrum.rest_wave[[i_start, i_end]],
             y=self.current_spectrum.bin_flux[[i_start, i_end]])
 
         plow = self.graph_widget.plot(
@@ -217,13 +216,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # Plot the binned, rest framed spectrum
         self.binned_spectrum_line.clear()
         self.binned_spectrum_line = self.graph_widget.plot(
-            self.current_spectrum.bin_wave,
+            self.current_spectrum.rest_wave,
             self.current_spectrum.bin_flux,
             pen=self.binned_spectrum_pen)
 
         # Guess start and end locations of the feature
         lower_bound, upper_bound = guess_feature_bounds(
-            self.current_spectrum.bin_wave,
+            self.current_spectrum.rest_wave,
             self.current_spectrum.bin_flux,
             self.current_feat_def
         )
@@ -411,7 +410,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # If the feature is out of range, try the next one
             try:
                 guess_feature_bounds(
-                    self.current_spectrum.bin_wave,
+                    self.current_spectrum.rest_wave,
                     self.current_spectrum.bin_flux,
                     self._get_feat_def(new_index)
                 )
@@ -451,39 +450,22 @@ class MainWindow(QtWidgets.QMainWindow):
             - The sampling error in calc_area
         """
 
-        # Sample feature boundaries
-        velocity, pequiv_width, area = [], [], []
-        for feature in self.current_spectrum.iter_measured_feature(
-                feat_end, feat_start, nstep, rest_frame):
-            # Accumulate results from each sample
-            velocity.append(feature.velocity)
-            pequiv_width.append(feature.pew)
-            area.append(feature.area)
+        def callback(feature):
+            """Plot gaussian fit of a feature"""
 
-            # Plot gaussian fit of the feature
             fitted_line = self.graph_widget.plot(
                 feature.wave,
-                feature.gauss_fit * feature.continuum,
+                feature.gaussian_fit() * feature.continuum,
                 pen=self.feature_fit_pen)
 
             self.plotted_feature_fits.append(fitted_line)
 
-        # Return average values and errors
-        avg_velocity = np.mean(velocity)
-        avg_ew = np.mean(pequiv_width)
-        avg_area = np.mean(area)
-
-        return [
-            nominal_value(avg_velocity),
-            std_dev(avg_velocity),
-            np.std(nominal_values(avg_velocity)),
-            nominal_value(avg_ew),
-            std_dev(avg_ew),
-            np.std(nominal_values(pequiv_width)),
-            nominal_value(avg_area),
-            std_dev(avg_area),
-            np.std(nominal_values(area))
-        ]
+        return self.current_spectrum.sample_feature_properties(
+            feat_start=feat_start,
+            feat_end=feat_end,
+            rest_frame=rest_frame,
+            nstep=nstep,
+            callback=callback)
 
     ###########################################################################
     # Logic for buttons
@@ -504,7 +486,7 @@ class MainWindow(QtWidgets.QMainWindow):
         upper_bound_loc = self.upper_bound_line.value()
 
         # Get nearest measured wavelengths to the specified feature bounds
-        wave = self.current_spectrum.bin_wave
+        wave = self.current_spectrum.rest_wave
         lower_bound = wave[(np.abs(wave - lower_bound_loc)).argmin()]
         upper_bound = wave[(np.abs(wave - upper_bound_loc)).argmin()]
 

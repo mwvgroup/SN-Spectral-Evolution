@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""The ``simulate`` module provides functions for simulating spectra with
-absorption features according to various toy models. This is useful when
-testing or visualizing the behavior of an analysis procedure.
+"""The ``simulate`` module provides functions for simulating spectra
+(wavlength and lfux arrays) with absorption features according to various
+toy models. This is useful when testing or visualizing the behavior of an
+analysis procedure.
 
 Usage Examples:
 ---------------

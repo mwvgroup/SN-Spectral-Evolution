@@ -3,42 +3,8 @@
 
 """The ``app`` module defines the objects and logic that drive the graphical
 interface. It includes dedicated classes for each application window, and a
-``run`` function for launching the GUI application.
-
-Usage Examples
---------------
-
-.. error:: TODO: Change this out for a simpler, more direct example.
-
-.. code-block:: python
-   :linenos:
-
-   import yaml
-   from sndata.sdss import Sako18Spec
-   from spec_analysis.app import run
-   from spec_analysis.spectra import SpectraIterator
-
-   # Make sure data is downloaded to your local machine
-   data_release = Sako18Spec()
-   data_release.download_module_data()
-
-   # Here we select object Id's only SNe Ia
-   spec_summary = data_release.load_table(9)
-   obj_ids = spec_summary[spec_summary['Type'] == 'Ia']['CID']
-
-   # Function called to process data tables before plotting / analysis
-   def pre_process(table):
-       # Remove galaxy spectra from data tables
-       return table[table['type'] != 'Gal']
-
-   config_path = '/Users/daniel/Github/SN-Spectral-Evolution/app_config.yml'
-   with open(config_path) as config_reader:
-       config = yaml.safe_load(config_reader)
-
-   data_iter = SpectraIterator(data_release, pre_process=pre_process)
-
-   # Launch the graphical inspector for measuring spectral properties
-   run(data_iter, './demo_results.csv', config)
+``run`` function for launching the GUI application. For usage examples,
+see the GettingStarted_ guide.
 
 API Documentation
 -----------------
