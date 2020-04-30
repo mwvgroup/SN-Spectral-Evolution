@@ -163,7 +163,13 @@ class Velocity(TestCase):
                 (lambda_ratio ** 2 - 1) / (lambda_ratio ** 2 + 1)
         )
 
-        self.assertEqual(v_expected, self.feature.velocity)
+        if not np.isclose(self.lambda_observed, self.feature.gauss_avg):
+            self.assertEqual(self.lambda_observed, self.feature.gauss_avg,
+                             'Fitted average not close to simulated average')
+
+        if not np.isclose(v_expected, self.feature.velocity, atol=0, rtol=.0001):
+            self.assertEqual(v_expected, self.feature.velocity,
+                             'Fitted velocity not close to simulated average')
 
     def test_uarray_support(self):
         """Test the function supports input arrays with ufloat objects"""
