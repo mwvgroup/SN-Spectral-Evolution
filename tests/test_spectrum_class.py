@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""Tests for the ``data_classes`` module."""
+"""Tests for the ``Spectrum`` class."""
 
 import extinction
 from unittest import TestCase

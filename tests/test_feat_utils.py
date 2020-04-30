@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-"""Tests for the ``measure_feature`` module."""
+"""Tests for the ``utils`` module."""
 
 from unittest import TestCase
 
@@ -10,6 +10,7 @@ import numpy as np
 from spec_analysis import simulate
 from spec_analysis.exceptions import FeatureNotObserved
 from spec_analysis.feat_utils import find_peak_wavelength, guess_feature_bounds
+
 
 class FindPeakWavelength(TestCase):
     """Tests for the ``find_peak_wavelength`` function"""
