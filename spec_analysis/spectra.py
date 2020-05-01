@@ -158,8 +158,8 @@ from pathlib import Path
 
 import numpy as np
 import sfdmap
+import uncertainties as unc
 from scipy.ndimage.filters import gaussian_filter, generic_filter, median_filter
-from uncertainties import nominal_value, std_dev
 from uncertainties.unumpy import nominal_values
 
 from .exceptions import SamplingRangeError
@@ -335,14 +335,14 @@ class Spectrum:
         avg_area = np.mean(area)
 
         return [
-            nominal_value(avg_velocity),
-            std_dev(avg_velocity),
-            np.std(nominal_values(avg_velocity)),
-            nominal_value(avg_ew),
-            std_dev(avg_ew),
+            unc.nominal_value(avg_velocity),
+            unc.std_dev(avg_velocity),
+            np.std(nominal_values(velocity)),
+            unc.nominal_value(avg_ew),
+            unc.std_dev(avg_ew),
             np.std(nominal_values(pequiv_width)),
-            nominal_value(avg_area),
-            std_dev(avg_area),
+            unc.nominal_value(avg_area),
+            unc.std_dev(avg_area),
             np.std(nominal_values(area))
         ]
 

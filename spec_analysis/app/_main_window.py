@@ -42,7 +42,7 @@ def get_results_dataframe(out_path: Path = None) -> pd.DataFrame:
             out_path.parent.mkdir(exist_ok=True, parents=True)
 
     col_names = ['obj_id', 'time', 'feat_name', 'feat_start', 'feat_end']
-    for value in ('vel', 'pew', 'calc_area'):
+    for value in ('vel', 'pew', 'area'):
         col_names.append(value)
         col_names.append(value + '_err')
         col_names.append(value + '_samperr')
@@ -311,16 +311,22 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         except KeyError:
             vel = 'N/A'
             pew = 'N/A'
+            vel_err = 'N/A'
+            pew_err = 'N/A'
             notes = ''
 
         else:
             vel = rf'{results.vel:.3}'
             pew = rf'{results.pew:.3}'
+            vel_err = rf'{results.vel_samperr:.3}'
+            pew_err = rf'{results.pew_samperr:.3}'
             notes = results.notes
 
         QApplication.processEvents()
         self.velocity_label.setText(vel)
         self.pew_label.setText(pew)
+        self.velocity_err_label.setText(vel_err)
+        self.pew_err_label.setText(pew_err)
         self.notes_text_edit.setText(notes)
 
     def _write_results_to_file(self):
@@ -522,11 +528,15 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         else:
             self.current_feat_results.extend(sampling_results)
             velocity = sampling_results[0]
+            velocity_err = sampling_results[2]
             pew = sampling_results[3]
+            pew_err = sampling_results[5]
 
             QApplication.processEvents()
             self.velocity_label.setText(rf'{velocity:.3f}')
             self.pew_label.setText(rf'{pew:.3f}')
+            self.velocity_err_label.setText(rf'{velocity_err:.3f}')
+            self.pew_err_label.setText(rf'{pew_err:.3f}')
 
     def save(self):
         """Logic for the ``save`` button
