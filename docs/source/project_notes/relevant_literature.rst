@@ -105,6 +105,8 @@ low-redshift, Branch-normal SNe Ia.
 
 **Conclusions:**
 
+No evidence was found of SNe Ia evolution with redshift. Measured pseudo-equivalent widths for a group of high and low redshift SNe and plotted feature strength with respect to redshift for MgII, SiII, and CaII, as well as CaII ejection velocity. The core normal SNe showed no consistent trend. They did observe a correlation between the strength of the SiII feature and the peak magnitude. However, this trend did not significantly improve standardization over stretch parameter corrections.
+
 `Hatano  2000`_
 ---------------
 
