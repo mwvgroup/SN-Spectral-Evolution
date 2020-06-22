@@ -78,7 +78,7 @@ features:
 # Style arguments for the plotting elements
 pens:
   observed_spectrum:
-    color: [0, 0, 139, 50]
+    color: [0, 90, 120, 50]
 
   binned_spectrum:
     width: 1.5

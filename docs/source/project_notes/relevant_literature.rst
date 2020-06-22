@@ -48,11 +48,11 @@ Papers investigating Host Galaxy Correlations
 =============================================
 
 - Gallagher 2008
-- Kelly 2010
-- Sullivan2010
+- Kelly 2010 (?)
+- Sullivan 2010 (?)
 - Lampeitl 2010
 - Gupta 2011
-- Rigaultet al. 2013
+- Rigault et al. 2013
 - Jones 2015
 - Moreno-Raya 2016
 - Uddin 2017
@@ -118,7 +118,7 @@ No evidence was found of SNe Ia evolution with redshift. Measured pseudo-equival
 
 **Conclusions:**
 
-`Lentzet 2000`_
+`Lentz 2000`_
 ---------------
 
 - **Sample Size:**
