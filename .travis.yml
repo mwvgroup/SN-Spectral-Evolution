@@ -6,9 +6,18 @@ python:
 os:
   - linux
 
+addons:
+  apt:
+    packages:
+      - python3-pyqt5
+      
+before_install:
+  - pip install --upgrade pip
+
 install:
   - pip install -r requirements.txt
   - pip install coverage
+  - pip install pytest
 
   # Install codeclimate API
   # https://docs.codeclimate.com/
@@ -19,7 +28,7 @@ before_script:
   - ./cc-test-reporter before-build
 
 script:
-  - coverage run --source='.' manage.py test broker_web
+  - coverage run -m pytest
   - coverage xml
 
 after_script:

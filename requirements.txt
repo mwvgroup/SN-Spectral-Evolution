@@ -1,10 +1,10 @@
 sndata>=1.0.1
 PyQt5
 pyqtgraph
-astropy
+astropy>=4.0
 extinction
 matplotlib
-numpy
+numpy>=1.16
 scipy
 sfdmap
 uncertainties
