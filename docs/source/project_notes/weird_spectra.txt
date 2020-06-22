@@ -1,0 +1,27 @@
+Spectra to look out for:
+
+2005al late-time spectrum (1-3 months)
+
+2005hc  (pW5 in 2005hc would end at 5300AA, which is outside of the feature boundary. )
+
+2006bh (features 2 and 3) 
+
+2006hx pW5 
+
+2005A 
+
+2006mr possibly a late time spectrum? 
+
+2007N
+
+2007le many of the features are obvious but fall out of the ranges of the boundaries. 
+
+2008gp line running through it. And break from 6216-6343
+
+2008ia possibly late time spectrum. Features 1-3’s boundaries are off. 
+
+2009ab line through it and break in spectrum through 6350-6480.
+
+2009ad line through it and break in spectrum from 6240-6375.
+
+NOTE: tiny dip between pW4 and pW5 has not been included in either feature in Emily's measurements. 
