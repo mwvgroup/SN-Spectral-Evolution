@@ -55,7 +55,7 @@ def get_results_dataframe(out_path: Path = None) -> pd.DataFrame:
 # Note: When update labels in the GUI we call ``QApplication.processEvents()``
 # first to give the GUI a chance to catch up or labels may not update correctly
 # This is a bug is mostly seen on MAC OS with PyQt5 >= 5.11
-class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
+class MainWindow(QtWidgets.QMainWindow):
     """The run_sako18spec window for visualizing and measuring spectra"""
 
     def __init__(self, spectra_iter, out_path, config):
