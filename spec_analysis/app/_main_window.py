@@ -380,7 +380,7 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         self._write_results_to_file()
 
         # Determine spectra with existing measurements
-        existing = np.transpose(self.saved_results.index.levels[:2])
+        existing = np.transpose(self.saved_results.index.levels[:2]).tolist()
 
         # Get next spectrum for inspection
         for self.current_spectrum in self._spectra_iter._iter_data:
