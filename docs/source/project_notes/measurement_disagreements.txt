@@ -75,6 +75,88 @@ Object ID Disagreements and Conclusions.
 		disagreement on end, TAKE ELLA/EMILY's
 	- 2007A pW3
 		disagreement at start, TAKE ELLA/EMILY's
-	- 2007N Pw4
+	- 2007N pW4
 		91bg. 
+	- 2007ax pW3
+		disagreement on start of feature. TAKE ANISH/EMILY's
+	- 2007ba pW2
+		seem to agree closely. TAKE THE AVERAGE. 
+	- 2007ba pW5
+		Anish slightly to right on blueward. TAKE ELLA/EMILY's
+	- 2007bc pW2
+		Anish slightly to right on blueward. TAKE ELLA/EMILY's
+	- 2007bc pW6
+		plateau between pW5 and pW6 IGNORE PLATEAU, split difference between pW6 
+		and pW7.
+	- 2007bd pW1
+		TAKE ELLAs or skip
+	- 2007bd pW3
+		disagreement on end, two peaks included in end bound. TALK TO DANIEL
+	- 2007bd pW5
+		disagreement on end. DONT INCLUDE DIP BETWEEN pW5 and pW6. 
+	- 2007bd pW6 
+		SEE CONCLUSION ABOVE 
+	- 2007bd pW8 
+		disagreement mainly on end. Confusion due to noise. TAKE ELLAs. 
+	- 2007ca pW6
+		very shallow. Disagreement on end. Odd piece of noise. Very close. TAKE 		AVERAGE.
+	- 2007hj pW3
+		feature start boundary doesn't include actual start of feature. Boundaries
+		on feature 2 are uncertain also. ASK DANIEL. 
+	- 2007hj pW5
+		Anish's start is too far right. Take ELLA/EMILY's 
+	- 2007hj pW6
+		disagreement on end. TAKE ELLA's (end on first peak). 
+	- 2007jg pW6
+		disagreement on start. TAKE EMILY's (ignore weird dip/plateau between pW5 
+		and pW6). (Take Anish/emily's right bound also). 
+	- 2007on pW2
+		disagreement on start of feature. TAKE ELLA/EMILY's (local max). 
+	- 2008R pW3
+		ASK DANIEL
+	- 2008R pW4
+		for end take rightmost peak. ASK DANIEL
+	- 2008bc pW1
+		looks non Ia but classified as CN. Take ella/emily's ASK DANIEL
+	- 2008bc pW4 
+		disagreement on start. TAKE RIGHTMOST END PEAK. EXTEND START BOUND TO 			INCLUDE PEAK TO THE LEFT. 
+	- 2008bf pW2
+		disagreement on start. TAKE ABSOLUTE MAX. ELLA/EMILY's.
+	- 2008bf pW3
+		plateau at end boundary. TAKE ELLA/ANISH's middle of plateau. 
+	- 2008bf pW6
+		very flat feature. disagreement on start. TAKE ELLA's measurement IGNORE
+		PLATEAU BETWEEN pW5 and pW6
+	- 2008fp pW2
+		disagreement on beginning. TAKE LOCAL MAX/EMILY's 
+	- 2009aa pW2
+		Anish's start measurement not at local max. TAKE LOCAL MAX/ELLA/EMILYs
+	- 2009aa pW3
+		dip between pW3 and pW4. ASK DANIEL, TAKE LEFT PEAK FOR END.
+	- 2009aa pW4
+		include right peak at end. USE ANISH/EMILY. 
+	- 2009aa pW5
+		disagreement on start, take LOCAL MAX ELLA/EMILY's. 
+	- 2009ab pW3
+		disagreement on end. TAKE LEFTMOST PEAK FOR END. 
+	- 2009ab pW5
+		very shallow. TAKE LOCAL MAX FOR START. ELLA/EMILY's 
+	- 2009ab pW7
+		Break in spectra. THROW FEATURE OUT. 
+	
+		 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		
