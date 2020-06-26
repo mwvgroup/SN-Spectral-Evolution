@@ -1,0 +1,80 @@
+Main Takeaways: 
+	- Make pW1 as wide as possible without overlapping pW2.
+	- If the end of pW4 falls on a shoulder, take the redder/rightmost peak as the end 	  boundary. 
+	- Don't include the plateau between pW5 and pW6 in measurements for either feature
+	  unless it is very small. 
+	- pW6 and pW7 are supposed to touch, so use the beginning of pW7 to help determine
+	  the end of pW6, if ambiguous. 
+	- If a tiny plateau exists between two features, take the center of it. 
+
+Object ID Disagreements and Conclusions. 
+	- 2004ef pW1
+		disagreement on end of feature. Feature bound was outside (just blueward) 		of inspection range. THROW RESULT OUT. 
+	- 2004ey pW2
+		disagreement on feature start. Plateau at start confusing bounds. TAKE
+		MIDDLE OF PLATEAU. 
+	- 2004ey pW5
+		disagreement on end bound due to plateau between five and six. IGNORE
+		PLATEAU. 
+	- 2004gu pW1
+		disagreement on end. THROW FEATURE OUT. 
+	- 2004gu pW6
+		very flat feature. Very small PEW. Little/no absorption, mostly 
+		continuum. TAKE ELLA's BOUNDARY. 
+	- 2004gu pW7
+		see 2004gu pW6. 
+	- 2005M 
+		SAME OBJECT ID, 2 TIMES. COME BACK TO THIS ONE. 
+	- 2005ag pW2
+		plateau at front. TAKE CENTER OF PLATEAU (Emily's measurement). 
+	- 2005ag pW4 
+		dip between pW4 and pW5 not included at start of pW5. Blue range all the		way to the left. Take redder/right peak as end bound. 
+	- 2005ag pW6
+		disagreement on feature start. TAKE AVERAGE. 
+	- 2005el pW2
+		Anish's start measurement later than Ella and Emily's. TAKE ELLA/EMILY's.
+	- 2005eq pW7
+		disagreement on feature start. TAKE END OF FIRST LIP, CLOSER TO ELLA's.
+	- 2005hc pW3
+		disagreement on feature start. Small plateau between pW2 and pW3. TAKE
+		MIDDLE OF PLATEAU.
+	- 2005hc pW5 
+		peak at start is outside of the bound range. Almost want to extend bound.
+		would start on shoulder. All bounds are shifted too far right. CSP got a
+		PEW of 89.3. RETURN TO SPECTRA AND MESS WITH BOUNDS.
+	- 2005iq
+		disagreement on end of pW2, start peak of pW3 isn't included in left 
+		bound. Almost doesn't look like a type Ia. Late time spectrum. THROW
+		OUT WHOLE SPECTRUM AND RESEARCH SPECTRAL TIME SERIES. 
+	- 2004kc pW6
+		plateau between pW5 and pW6, IGNORE PLATEAU. 
+	- 2005ke pW2
+		small errors, USE ANISH/EMILY's. 
+	- 2005ki pW6
+		disagreement on start of feature. TAKE THE LEFTMOST PEAK, SEE EMILY's. 
+	- 2006ax pW3
+		disagreement on end bound, TAKE AVERAGE. 
+	- 2006ax pW6
+		plateau between pW5 and pW6 causing disagreement. IGNORE PLATEAU, BEGIN
+		TO THE RIGHT. 
+	- 2006bh pW3
+		start bounds don't include start of pW3. IGNORE BOUNDS FOR START OF 
+		FEATURE. 
+	- 2006et pW2
+		disagreement on end bound on which peak to take. LEAVE IT BE, TAKE
+		THE AVERAGE. 
+	- 2006et pW6 
+		disagreement on start. Put blue at max peak. TAKE ELLA/EMILY's
+	- 2006hx pW3
+		disagreement on start. Take local max. USE ELLA/EMILY's 
+	- 2006hx pW5
+		very flat. NO MEANINGFUL CONCLUSION.
+	- 2006mr pW4
+		91bg. SKIP SPECTRUM. 
+	- 2007A pW1
+		disagreement on end, TAKE ELLA/EMILY's
+	- 2007A pW3
+		disagreement at start, TAKE ELLA/EMILY's
+	- 2007N Pw4
+		91bg. 
+		
