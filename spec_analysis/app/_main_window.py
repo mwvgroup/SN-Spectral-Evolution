@@ -55,7 +55,7 @@ def get_results_dataframe(out_path: Path = None) -> pd.DataFrame:
 # Note: When update labels in the GUI we call ``QApplication.processEvents()``
 # first to give the GUI a chance to catch up or labels may not update correctly
 # This is a bug is mostly seen on MAC OS with PyQt5 >= 5.11
-class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
+class MainWindow(QtWidgets.QMainWindow):
     """The run_sako18spec window for visualizing and measuring spectra"""
 
     def __init__(self, spectra_iter, out_path, config):
@@ -85,7 +85,7 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
 
         # Setup tasks for the GUI
         self.current_release_label.setText(spectra_iter.data_release.release)
-        self._init_pens()
+        self._init_pen_kwarg_dicts()
         self._init_plot_widget()
         self._connect_signals()
 
@@ -93,43 +93,56 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         self._iterate_to_next_spectrum()
         self.reset_plot()
 
-    def _init_pens(self):
+    def _init_pen_kwarg_dicts(self):
+        """Init dictionaries with plotting arguments for each
+        widget drawn on the plot
+
+        Defines the attributes:
+          - ``observed_spectrum_kw (dict)``
+          - ``binned_spectrum_kw (dict)``
+          - ``feature_fit_kw (dict)``
+          - ``lower_bound_kw (dict)``
+          - ``upper_bound_kw (dict)``
+          - ``lower_region_kw (dict)``
+          - ``upper_region_kw (dict)``
+          - ``saved_feature_kw (dict)``
+        """
 
         pens_dict = self._config.get('pens', {})
 
-        self.observed_spectrum_pen = pens_dict.get(
+        self.observed_spectrum_kw = pens_dict.get(
             'observed_spectrum', {'color': (0, 0, 180, 80)})
 
-        self.binned_spectrum_pen = pens_dict.get(
+        self.binned_spectrum_kw = pens_dict.get(
             'binned_spectrum', {'width': 1.5, 'color': 'k'})
 
-        self.feature_fit_pen = pens_dict.get(
+        self.feature_fit_kw = pens_dict.get(
             'feature_fit', {'color': 'r'})
 
-        self.lower_bound_pen = pens_dict.get(
+        self.lower_bound_kw = pens_dict.get(
             'lower_bound', {'width': 3, 'color': 'r'})
 
-        self.upper_bound_pen = pens_dict.get(
+        self.upper_bound_kw = pens_dict.get(
             'upper_bound', {'width': 3, 'color': 'r'})
 
-        self.lower_region_brush = pens_dict.get(
+        self.lower_region_kw = pens_dict.get(
             'lower_region', (255, 0, 0, 50))
 
-        self.upper_region_brush = pens_dict.get(
+        self.upper_region_kw = pens_dict.get(
             'upper_region', (0, 0, 255, 50))
 
-        self.saved_feature_brush = pens_dict.get(
+        self.saved_feature_kw = pens_dict.get(
             'saved_feature', (0, 180, 0, 75))
 
     def _init_plot_widget(self):
         """Format the plotting widget and plot place holder objects
 
         Defines the attributes:
-          - ``lower_bound_line``: ``InfiniteLine``
-          - ``upper_bound_line``: ``InfiniteLine``
-          - ``lower_bound_region``: ``LinearRegionItem``
-          - ``upper_bound_region``: ``LinearRegionItem``
-          - ``spectrum_line``: ``PlotWindow``
+          - ``lower_bound_line (InfiniteLine)``
+          - ``upper_bound_line (InfiniteLine)``
+          - ``lower_bound_region (LinearRegionItem)``
+          - ``upper_bound_region (LinearRegionItem)``
+          - ``spectrum_line (PlotWindow)``
         """
 
         self.graph_widget.setBackground('w')
@@ -139,8 +152,8 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
 
         # Create lines marking estimated start and end of a feature
         dummy_val = 3500
-        self.lower_bound_line = pg.InfiniteLine(dummy_val, pen=self.lower_bound_pen, movable=True)
-        self.upper_bound_line = pg.InfiniteLine(dummy_val, pen=self.upper_bound_pen, movable=True)
+        self.lower_bound_line = pg.InfiniteLine(dummy_val, pen=self.lower_bound_kw, movable=True)
+        self.upper_bound_line = pg.InfiniteLine(dummy_val, pen=self.upper_bound_kw, movable=True)
         self.graph_widget.addItem(self.lower_bound_line)
         self.graph_widget.addItem(self.upper_bound_line)
         self._update_feature_bounds_le()
@@ -148,8 +161,8 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         # Create regions highlighting wavelength ranges used when estimating
         # the start and end of a feature
         dummy_arr = [3500, 3800]
-        self.lower_bound_region = pg.LinearRegionItem(dummy_arr, brush=self.lower_region_brush, movable=False)
-        self.upper_bound_region = pg.LinearRegionItem(dummy_arr, brush=self.upper_region_brush, movable=False)
+        self.lower_bound_region = pg.LinearRegionItem(dummy_arr, brush=self.lower_region_kw, movable=False)
+        self.upper_bound_region = pg.LinearRegionItem(dummy_arr, brush=self.upper_region_kw, movable=False)
         self.graph_widget.addItem(self.lower_bound_region)
         self.graph_widget.addItem(self.upper_bound_region)
 
@@ -180,15 +193,13 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         if clear_single:
             bound_list = self.plotted_feature_bounds.get(self.current_feat_name, [])
             while bound_list:
-                item = bound_list.pop()
-                self.graph_widget.removeItem(item)
+                self.graph_widget.removeItem(bound_list.pop())
 
             return
 
         for bound_list in self.plotted_feature_bounds.values():
             while bound_list:
-                item = bound_list.pop()
-                self.graph_widget.removeItem(item)
+                self.graph_widget.removeItem(bound_list.pop())
 
     def plot_saved_feature(self):
         """Clear any plotted feature boundaries from the plot"""
@@ -207,7 +218,7 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
             x=self.current_spectrum.rest_wave[i_start: i_end + 1],
             y=self.current_spectrum.rest_flux[i_start: i_end + 1])
 
-        pfill = pg.FillBetweenItem(phigh, plow, brush=self.saved_feature_brush)
+        pfill = pg.FillBetweenItem(phigh, plow, brush=self.saved_feature_kw)
         self.plotted_feature_bounds[self.current_feat_name] = [plow, phigh, pfill]
         self.graph_widget.addItem(pfill)
 
@@ -225,14 +236,14 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         self.observed_spectrum_line = self.graph_widget.plot(
             self.current_spectrum.rest_wave,
             self.current_spectrum.rest_flux,
-            pen=self.observed_spectrum_pen)
+            pen=self.observed_spectrum_kw)
 
         # Plot the binned, rest framed spectrum
         self.binned_spectrum_line.clear()
         self.binned_spectrum_line = self.graph_widget.plot(
             self.current_spectrum.rest_wave,
             self.current_spectrum.bin_flux,
-            pen=self.binned_spectrum_pen)
+            pen=self.binned_spectrum_kw)
 
         # Guess start and end locations of the feature
         lower_bound, upper_bound = guess_feature_bounds(
@@ -369,7 +380,7 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
         self._write_results_to_file()
 
         # Determine spectra with existing measurements
-        existing = np.transpose(self.saved_results.index.levels[:2])
+        existing = np.transpose(self.saved_results.index.levels[:2]).tolist()
 
         # Get next spectrum for inspection
         for self.current_spectrum in self._spectra_iter._iter_data:
@@ -476,7 +487,7 @@ class MainWindow(QtWidgets.QMainWindow):  # pragma: no cover
             fitted_line = self.graph_widget.plot(
                 feature.wave,
                 feature.gaussian_fit() * feature.continuum,
-                pen=self.feature_fit_pen)
+                pen=self.feature_fit_kw)
 
             self.plotted_feature_fits.append(fitted_line)
 
