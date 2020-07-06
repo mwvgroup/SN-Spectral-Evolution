@@ -351,25 +351,16 @@
            </widget>
           </item>
           <item>
-           <spacer name="horizontal_pacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Ignored</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="flag_checkbox">
+           <widget class="QCheckBox" name="flag_spectrum_checkbox">
             <property name="text">
              <string>Flag spectrum</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="flag_feature_checkbox">
+            <property name="text">
+             <string>Flag Feature</string>
             </property>
            </widget>
           </item>

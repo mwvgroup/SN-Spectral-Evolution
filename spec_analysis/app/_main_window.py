@@ -47,6 +47,8 @@ def get_results_dataframe(out_path: Path = None) -> pd.DataFrame:
         col_names.append(value + '_err')
         col_names.append(value + '_samperr')
 
+    col_names.append('spec_flag')
+    col_names.append('feat_flag')
     col_names.append('notes')
     df = pd.DataFrame(columns=col_names)
     return df.set_index(['obj_id', 'time', 'feat_name'])
@@ -405,6 +407,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             break
 
+        self.flag_spectrum_checkbox.setChecked(False)
+
     def _iterate_feature(self, direction, on_fail='warn'):
         """Update the plot to depict the next feature
 
@@ -457,6 +461,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._reset_measurement_labels()
         self.current_feat_results = None
         self.reset_plot()
+        self.flag_feature_checkbox.setChecked(False)
 
     def _sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
         """Calculate the properties of a single feature in a spectrum
@@ -566,6 +571,8 @@ class MainWindow(QtWidgets.QMainWindow):
         time = self.current_spectrum.time
         index = (obj_id, time, feat_name)
 
+        self.current_feat_results.append(int(self.flag_spectrum_checkbox.isChecked()))
+        self.current_feat_results.append(int(self.flag_feature_checkbox.isChecked()))
         self.current_feat_results.append(self.notes_text_edit.toPlainText())
         self.current_spec_results.loc[index] = self.current_feat_results
         lower_bound_loc = self.current_spec_results.loc[index]['feat_start']
