@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 import pyqtgraph as pg
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import QRegExp
+from PyQt5.QtCore import QRegExp, Qt
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox, QTableWidgetItem
 
 from ..exceptions import FeatureNotObserved, SamplingRangeError
 from ..feat_utils import guess_feature_bounds
@@ -86,14 +86,35 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_spectrum = None
 
         # Setup tasks for the GUI
-        self.setWindowTitle(f'{spectra_iter.data_release.survey_abbrev} - {spectra_iter.data_release.release}')
         self._init_pen_kwarg_dicts()
         self._init_plot_widget()
+        self._init_feature_table()
         self._connect_signals()
 
         # Plot the first spectrum / feature combination for user inspection
         self._iterate_to_next_spectrum()
         self.reset_plot()
+
+    def _init_feature_table(self):
+        """Populate the ``feature_bounds_table`` table with feature boundaries
+        from the application config.
+        """
+
+        self.feature_bounds_table.setRowCount(len(self._config['features']))
+
+        col_order = ('lower_blue', 'upper_blue', 'lower_red', 'upper_red', 'feature_id')
+        for row_idx, (feat_id, feat_data) in enumerate(self._config['features'].items()):
+            row_label = QTableWidgetItem(feat_id)
+            self.feature_bounds_table.setVerticalHeaderItem(row_idx, row_label)
+
+            for col_idx, col_key in enumerate(col_order):
+                cell_content = QTableWidgetItem(str(feat_data[col_key]))
+                if col_key != 'feature_id':
+                    cell_content.setTextAlignment(Qt.AlignCenter)
+
+                self.feature_bounds_table.setItem(row_idx, col_idx, cell_content)
+
+        self.feature_bounds_table.resizeColumnsToContents()
 
     def _init_pen_kwarg_dicts(self):
         """Init dictionaries with plotting arguments for each
@@ -266,12 +287,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Update appropriate GUI labels
         QApplication.processEvents()
-        self.current_object_id_label.setText(self.current_spectrum.obj_id)
         self.current_ra_label.setText(rf'{self.current_spectrum.ra:.3f}')
         self.current_dec_label.setText(rf'{self.current_spectrum.dec:.3f}')
         self.current_redshift_label.setText(rf'{self.current_spectrum.dec:.3f}')
-        self.current_feat_label.setText(self.current_feat_name)
         self.current_phase_label.setText(rf'{self.current_spectrum.phase:.3f}')
+        self.feature_bounds_table.selectRow(self.current_feat_idx)
+        self.setWindowTitle(
+            f'{self._spectra_iter.data_release.survey_abbrev} - '
+            f'{self._spectra_iter.data_release.release} - '
+            f'{self.current_spectrum.obj_id}')
 
         self.graph_widget.autoRange()
 
