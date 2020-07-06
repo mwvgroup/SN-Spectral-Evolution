@@ -76,8 +76,8 @@ def pre_process(table):
     table = table[table['type'] != 'Gal']
 
     # Remove spectra outside phase range
-    phase = table['time'] - t0
-    table = table[(min_phase <= phase) & (phase <= max_phase)]
+    table['phase'] = table['time'] - t0
+    table = table[(min_phase <= table['phase']) & (table['phase'] <= max_phase)]
 
     return table
 
@@ -96,7 +96,7 @@ def create_sdss_data_iter():
     obj_ids = spec_summary[spec_summary['Type'] == 'Ia']['CID']
     obj_ids = sorted(obj_ids, key=int)
 
-    return SpectraIterator(sako_18_spec, obj_ids=obj_ids, pre_process=pre_process)
+    return SpectraIterator(sako_18_spec, obj_ids=obj_ids, pre_process=pre_process, group_by='phase')
 
 
 def main(config_path, out_path):

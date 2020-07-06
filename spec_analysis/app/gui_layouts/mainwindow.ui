@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>914</width>
-    <height>650</height>
+    <width>1175</width>
+    <height>889</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -122,6 +122,20 @@
            <widget class="QLabel" name="current_object_id_label">
             <property name="text">
              <string>None</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="current_phase_label">
+            <property name="text">
+             <string>N/A</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="phase_label">
+            <property name="text">
+             <string>Phase:</string>
             </property>
            </widget>
           </item>
@@ -378,8 +392,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>914</width>
-     <height>22</height>
+     <width>1175</width>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPlotting">

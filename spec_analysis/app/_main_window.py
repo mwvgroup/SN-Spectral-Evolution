@@ -269,6 +269,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_dec_label.setText(rf'{self.current_spectrum.dec:.3f}')
         self.current_redshift_label.setText(rf'{self.current_spectrum.dec:.3f}')
         self.current_feature_label.setText(self.current_feat_name)
+        self.current_phase_label.setText(rf'{self.current_spectrum.phase:.3f}')
 
         self.graph_widget.autoRange()
 
