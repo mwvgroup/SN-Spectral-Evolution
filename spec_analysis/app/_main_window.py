@@ -380,15 +380,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.clear_plotted_pew()
         self._write_results_to_file()
 
-        # Determine spectra with existing measurements
-        existing = np.transpose(self.saved_results.index.levels[:2]).tolist()
+        # Determine spectra with existing measurements by selecting dataframe
+        # index values for objectID and time but not feature ID
+        existing = self.saved_results.index.droplevel(2)
 
         # Get next spectrum for inspection
         for self.current_spectrum in self._spectra_iter._iter_data:
             self._update_progress_bar()
 
             # Skip if spectrum is already measured
-            key = [self.current_spectrum.obj_id, self.current_spectrum.time]
+            key = (self.current_spectrum.obj_id, self.current_spectrum.time)
             if key in existing:
                 continue
 
