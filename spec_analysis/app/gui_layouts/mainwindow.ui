@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1159</width>
-    <height>1023</height>
+    <width>1387</width>
+    <height>832</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,12 +16,12 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="horizontal_layout">
       <property name="rightMargin">
        <number>10</number>
       </property>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <layout class="QVBoxLayout" name="left_vertical_layout">
         <item>
          <widget class="PlotWidget" name="graph_widget" native="true">
           <property name="sizePolicy">
@@ -33,20 +33,16 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <item>
-           <widget class="QProgressBar" name="progress_bar">
-            <property name="value">
-             <number>0</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QProgressBar" name="progress_bar">
+          <property name="value">
+           <number>0</number>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <layout class="QVBoxLayout" name="right_vertical_layout">
         <property name="topMargin">
          <number>12</number>
         </property>
@@ -61,7 +57,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridLayout_3">
+         <layout class="QGridLayout" name="obj_data_grid_layout">
           <item row="2" column="1">
            <widget class="QLabel" name="ra_label">
             <property name="text">
@@ -103,7 +99,7 @@
           <item row="3" column="1">
            <widget class="QLabel" name="current_ra_label">
             <property name="text">
-             <string>0</string>
+             <string>N/A</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -113,7 +109,7 @@
           <item row="3" column="0">
            <widget class="QLabel" name="current_redshift_label">
             <property name="text">
-             <string>0</string>
+             <string>N/A</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -123,7 +119,7 @@
           <item row="3" column="2">
            <widget class="QLabel" name="current_dec_label">
             <property name="text">
-             <string>0</string>
+             <string>N/A</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -133,7 +129,7 @@
          </layout>
         </item>
         <item>
-         <widget class="Line" name="line_2">
+         <widget class="Line" name="line_0">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -152,7 +148,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QTableWidget" name="tableWidget">
+         <widget class="QTableWidget" name="feature_bounds_table">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -192,7 +188,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridLayout">
+         <layout class="QGridLayout" name="measured_grid_layout">
           <property name="topMargin">
            <number>12</number>
           </property>
@@ -204,7 +200,7 @@
            </widget>
           </item>
           <item row="3" column="2">
-           <widget class="QLabel" name="velocity_err_label">
+           <widget class="QLabel" name="current_velocity_err_label">
             <property name="text">
              <string>N/A</string>
             </property>
@@ -236,7 +232,7 @@
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QLabel" name="pew_label">
+           <widget class="QLabel" name="current_pew_label">
             <property name="text">
              <string>N/A</string>
             </property>
@@ -282,23 +278,23 @@
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QLabel" name="label_2">
+           <widget class="QLabel" name="velocity_label">
             <property name="text">
              <string>Velocity:</string>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QLabel" name="velocity_label">
+           <widget class="QLabel" name="current_velocity_label">
             <property name="text">
              <string>N/A</string>
             </property>
            </widget>
           </item>
           <item row="4" column="2">
-           <widget class="QLabel" name="pew_err_label">
+           <widget class="QLabel" name="current_pew_err_label">
             <property name="text">
-             <string>TextLabel</string>
+             <string>N/A</string>
             </property>
            </widget>
           </item>
@@ -310,14 +306,14 @@
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="pew_label">
             <property name="text">
              <string>PEW:</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="freat_label">
             <property name="text">
              <string>Current Feature:</string>
             </property>
@@ -333,7 +329,7 @@
          </layout>
         </item>
         <item>
-         <spacer name="verticalSpacer">
+         <spacer name="vertical_spacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -346,7 +342,7 @@
          </spacer>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <layout class="QHBoxLayout" name="notes_horizontal_layout">
           <item>
            <widget class="QLabel" name="notes_label">
             <property name="text">
@@ -355,7 +351,7 @@
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer">
+           <spacer name="horizontal_pacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -390,14 +386,14 @@
          </widget>
         </item>
         <item>
-         <widget class="Line" name="line_3">
+         <widget class="Line" name="line_1">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <layout class="QHBoxLayout" name="button_layout">
           <item>
            <widget class="QPushButton" name="calculate_button">
             <property name="toolTip">
@@ -461,7 +457,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1159</width>
+     <width>1387</width>
      <height>24</height>
     </rect>
    </property>

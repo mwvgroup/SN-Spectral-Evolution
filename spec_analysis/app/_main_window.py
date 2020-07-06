@@ -335,10 +335,10 @@ class MainWindow(QtWidgets.QMainWindow):
             notes = results.notes
 
         QApplication.processEvents()
-        self.velocity_label.setText(vel)
-        self.pew_label.setText(pew)
-        self.velocity_err_label.setText(vel_err)
-        self.pew_err_label.setText(pew_err)
+        self.current_velocity_label.setText(vel)
+        self.current_pew_label.setText(pew)
+        self.current_velocity_err_label.setText(vel_err)
+        self.current_pew_err_label.setText(pew_err)
         self.notes_text_edit.setText(notes)
 
     def _write_results_to_file(self):
@@ -545,10 +545,10 @@ class MainWindow(QtWidgets.QMainWindow):
             pew_err = sampling_results[5]
 
             QApplication.processEvents()
-            self.velocity_label.setText(rf'{velocity:.3f}')
-            self.pew_label.setText(rf'{pew:.3f}')
-            self.velocity_err_label.setText(rf'{velocity_err:.3f}')
-            self.pew_err_label.setText(rf'{pew_err:.3f}')
+            self.current_velocity_label.setText(rf'{velocity:.3f}')
+            self.current_pew_label.setText(rf'{pew:.3f}')
+            self.current_velocity_err_label.setText(rf'{velocity_err:.3f}')
+            self.current_pew_err_label.setText(rf'{pew_err:.3f}')
 
     def save(self):
         """Logic for the ``save`` button
