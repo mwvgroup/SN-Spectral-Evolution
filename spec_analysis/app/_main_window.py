@@ -84,7 +84,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_spectrum = None
 
         # Setup tasks for the GUI
-        self.current_release_label.setText(spectra_iter.data_release.release)
+        self.setWindowTitle(f'{spectra_iter.data_release.survey_abbrev} - {spectra_iter.data_release.release}')
         self._init_pen_kwarg_dicts()
         self._init_plot_widget()
         self._connect_signals()
@@ -268,7 +268,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_ra_label.setText(rf'{self.current_spectrum.ra:.3f}')
         self.current_dec_label.setText(rf'{self.current_spectrum.dec:.3f}')
         self.current_redshift_label.setText(rf'{self.current_spectrum.dec:.3f}')
-        self.current_feature_label.setText(self.current_feat_name)
+        self.current_feat_label.setText(self.current_feat_name)
         self.current_phase_label.setText(rf'{self.current_spectrum.phase:.3f}')
 
         self.graph_widget.autoRange()
