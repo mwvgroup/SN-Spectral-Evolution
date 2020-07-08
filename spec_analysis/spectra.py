@@ -412,6 +412,12 @@ class SpectraIterator:
                 )
 
                 setattr(spectrum, self.group_by, group_by_val[0])
+                for column in spectrum_data.colnames:
+                    if column not in ('wavelength', 'flux'):
+                        col_constant = spectrum_data[column][0]
+                        if all(spectrum_data[column] == col_constant):
+                            setattr(spectrum, column, col_constant)
+
                 yield spectrum
 
     def __iter__(self):

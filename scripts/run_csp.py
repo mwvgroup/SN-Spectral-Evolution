@@ -90,8 +90,8 @@ def pre_process(table):
     table['wavelength'] *= 1 + table.meta['z']
 
     # Remove spectra outside phase range
-    phase = table['time'] - t0
-    table = table[(min_phase <= phase) & (phase <= max_phase)]
+    table['phase'] = table['time'] - t0
+    table = table[(min_phase <= table['phase']) & (table['phase'] <= max_phase)]
 
     return table
 
@@ -109,7 +109,7 @@ def main(config_path, out_path):
         config_dict = yaml.safe_load(config_file)
 
     # Build data iterator
-    data_iter = SpectraIterator(dr1, pre_process=pre_process, group_by='time')
+    data_iter = SpectraIterator(dr1, pre_process=pre_process, group_by='phase')
 
     # Run the GUI
     run(data_iter, out_path, config_dict)

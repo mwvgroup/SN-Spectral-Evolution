@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 import pyqtgraph as pg
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import QRegExp
+from PyQt5.QtCore import QRegExp, Qt
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox, QTableWidgetItem
 
 from ..exceptions import FeatureNotObserved, SamplingRangeError
 from ..feat_utils import guess_feature_bounds
@@ -47,6 +47,8 @@ def get_results_dataframe(out_path: Path = None) -> pd.DataFrame:
         col_names.append(value + '_err')
         col_names.append(value + '_samperr')
 
+    col_names.append('spec_flag')
+    col_names.append('feat_flag')
     col_names.append('notes')
     df = pd.DataFrame(columns=col_names)
     return df.set_index(['obj_id', 'time', 'feat_name'])
@@ -84,14 +86,35 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_spectrum = None
 
         # Setup tasks for the GUI
-        self.current_release_label.setText(spectra_iter.data_release.release)
         self._init_pen_kwarg_dicts()
         self._init_plot_widget()
+        self._init_feature_table()
         self._connect_signals()
 
         # Plot the first spectrum / feature combination for user inspection
         self._iterate_to_next_spectrum()
         self.reset_plot()
+
+    def _init_feature_table(self):
+        """Populate the ``feature_bounds_table`` table with feature boundaries
+        from the application config.
+        """
+
+        self.feature_bounds_table.setRowCount(len(self._config['features']))
+
+        col_order = ('lower_blue', 'upper_blue', 'lower_red', 'upper_red', 'feature_id')
+        for row_idx, (feat_id, feat_data) in enumerate(self._config['features'].items()):
+            row_label = QTableWidgetItem(feat_id)
+            self.feature_bounds_table.setVerticalHeaderItem(row_idx, row_label)
+
+            for col_idx, col_key in enumerate(col_order):
+                cell_content = QTableWidgetItem(str(feat_data[col_key]))
+                if col_key != 'feature_id':
+                    cell_content.setTextAlignment(Qt.AlignCenter)
+
+                self.feature_bounds_table.setItem(row_idx, col_idx, cell_content)
+
+        self.feature_bounds_table.resizeColumnsToContents()
 
     def _init_pen_kwarg_dicts(self):
         """Init dictionaries with plotting arguments for each
@@ -264,11 +287,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Update appropriate GUI labels
         QApplication.processEvents()
-        self.current_object_id_label.setText(self.current_spectrum.obj_id)
         self.current_ra_label.setText(rf'{self.current_spectrum.ra:.3f}')
         self.current_dec_label.setText(rf'{self.current_spectrum.dec:.3f}')
         self.current_redshift_label.setText(rf'{self.current_spectrum.dec:.3f}')
-        self.current_feature_label.setText(self.current_feat_name)
+        self.current_phase_label.setText(rf'{self.current_spectrum.phase:.3f}')
+        self.feature_bounds_table.selectRow(self.current_feat_idx)
+        self.setWindowTitle(
+            f'{self._spectra_iter.data_release.survey_abbrev} - '
+            f'{self._spectra_iter.data_release.release} - '
+            f'{self.current_spectrum.obj_id}')
 
         self.graph_widget.autoRange()
 
@@ -334,10 +361,10 @@ class MainWindow(QtWidgets.QMainWindow):
             notes = results.notes
 
         QApplication.processEvents()
-        self.velocity_label.setText(vel)
-        self.pew_label.setText(pew)
-        self.velocity_err_label.setText(vel_err)
-        self.pew_err_label.setText(pew_err)
+        self.current_velocity_label.setText(vel)
+        self.current_pew_label.setText(pew)
+        self.current_velocity_err_label.setText(vel_err)
+        self.current_pew_err_label.setText(pew_err)
         self.notes_text_edit.setText(notes)
 
     def _write_results_to_file(self):
@@ -379,15 +406,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.clear_plotted_pew()
         self._write_results_to_file()
 
-        # Determine spectra with existing measurements
-        existing = np.transpose(self.saved_results.index.levels[:2]).tolist()
+        # Determine spectra with existing measurements by selecting dataframe
+        # index values for objectID and time but not feature ID
+        existing = self.saved_results.index.droplevel(2)
 
         # Get next spectrum for inspection
         for self.current_spectrum in self._spectra_iter._iter_data:
             self._update_progress_bar()
 
             # Skip if spectrum is already measured
-            key = [self.current_spectrum.obj_id, self.current_spectrum.time]
+            key = (self.current_spectrum.obj_id, self.current_spectrum.time)
             if key in existing:
                 continue
 
@@ -402,6 +430,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 continue
 
             break
+
+        self.flag_spectrum_checkbox.setChecked(False)
 
     def _iterate_feature(self, direction, on_fail='warn'):
         """Update the plot to depict the next feature
@@ -455,6 +485,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._reset_measurement_labels()
         self.current_feat_results = None
         self.reset_plot()
+        self.flag_feature_checkbox.setChecked(False)
 
     def _sample_feature_properties(self, feat_start, feat_end, rest_frame, nstep=5):
         """Calculate the properties of a single feature in a spectrum
@@ -544,10 +575,10 @@ class MainWindow(QtWidgets.QMainWindow):
             pew_err = sampling_results[5]
 
             QApplication.processEvents()
-            self.velocity_label.setText(rf'{velocity:.3f}')
-            self.pew_label.setText(rf'{pew:.3f}')
-            self.velocity_err_label.setText(rf'{velocity_err:.3f}')
-            self.pew_err_label.setText(rf'{pew_err:.3f}')
+            self.current_velocity_label.setText(rf'{velocity:.3f}')
+            self.current_pew_label.setText(rf'{pew:.3f}')
+            self.current_velocity_err_label.setText(rf'{velocity_err:.3f}')
+            self.current_pew_err_label.setText(rf'{pew_err:.3f}')
 
     def save(self):
         """Logic for the ``save`` button
@@ -564,6 +595,8 @@ class MainWindow(QtWidgets.QMainWindow):
         time = self.current_spectrum.time
         index = (obj_id, time, feat_name)
 
+        self.current_feat_results.append(int(self.flag_spectrum_checkbox.isChecked()))
+        self.current_feat_results.append(int(self.flag_feature_checkbox.isChecked()))
         self.current_feat_results.append(self.notes_text_edit.toPlainText())
         self.current_spec_results.loc[index] = self.current_feat_results
         lower_bound_loc = self.current_spec_results.loc[index]['feat_start']
