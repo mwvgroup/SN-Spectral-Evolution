@@ -1,0 +1,66 @@
+Output file: final_csp.csv
+2004ef -8.610 
+		PW1 skipping
+		small dip between 3 and 4 ignored
+		5 starts on a shoulder. 
+	-7.59
+		PW2 skipping
+		
+	-6.5
+		PW1 skipping 
+	-5.59
+		taking right peak of end of pW4 
+	-1.66
+		skip PW1
+		taking right peak of end of PW4
+		
+	3.3
+		taking local max's for PW4
+		ignoring dip between 5 and 6
+		taking rightmost end peak for PW7
+		
+	4.36
+		beginning of 3 includes a plateau between 2 & 3
+		
+2004eo -11.22
+	-10.23
+2004ey -0.67
+		not skipping PW1 
+		taking right peak for end of 4
+		ignoring plateau between 5 and 6
+		splitting plateau between 6 and 7
+2004gs -3.67
+		skipping pW1 
+		including the rightmost peak for end of 4
+		
+	2.32
+		skipping PW1
+		taking end of pW2 for start of 3
+		
+2004gu -4.64
+	
+2005A 4.39
+		line through spectrum, changes from one spectrum
+		to another halfway through. 
+		Skipping pW 5. 
+		Probably need to trash whole spectrum. 
+2005M -0.29
+	3.73
+		taking right peak at end of 4
+		
+	7.75
+		take right peak for end of pW4 
+
+200W -7.32
+		close up of feature 7
+2005ag -0.85
+		taking rightmost peak for end of 4
+2005al 14.21
+		skipping pW2, pW3, pW5, pW6 bc it doesn't match 		boundaries. (Refer to Folatelli paper) 
+		Late time spectrum. 
+2005am 7.59
+		Skip pW1
+	11.56
+		put end slightly outside of bounds for pW2
+		Take right peak for end of Pw4
+		skip 5 and 6 (late time spectrum)
