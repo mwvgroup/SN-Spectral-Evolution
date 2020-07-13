@@ -64,3 +64,120 @@ Output file: final_csp.csv
 		put end slightly outside of bounds for pW2
 		Take right peak for end of Pw4
 		skip 5 and 6 (late time spectrum)
+2005bl -6.820
+		Feature 4- we didn't take the rightmost peak because it wasn't included in 5 bounds, tried to extend 		the right bound as far as possible still
+		Ignore plateau between 5 and 6
+		Started 6 on higher left shoulder
+		pW7
+
+	-2.820
+		Small dip between 3 and 4 ignored
+		Took rightmost peak for 4
+		Ignoring the dip between 5 and 6
+		Took middle of little 6/7 plateau
+		Extended 7 as far as possible before it started going back down
+2005el
+	-7.440
+		Taking little plateau in the middle between 2 and 3
+		Ignoring the 3/4 dip
+		Taking the right peak of feature 4
+		Ignoring the dip and plateau between 5 and 6
+		Making the blue 6 bound farther to the right to ignore the plateau
+		Taking the 7 tail
+	-6.420
+		Skipping 1
+		middle of tiny 2/3 plateau
+		ignore small 3/4 dip
+		take rightmost peak for 4
+		from now on, include the 5/6 dip in 5 but ignore the plateau
+		middle of tiny 6/7 plateau, still butt up
+		take 7 as far right as possible before it starts to go down at all
+	1.620
+		skip 1
+		middle of tiny 2/3 plateau
+		exclude 3/4 dip
+		right peak of 4
+		take blue 6 bound farther right to ignore 5/6 plateau
+		
+	14.580	*late time
+		skip 1
+		measuring 3 to be giant because 2 goes away in the late time
+		skip 5 and 6 because they combine in late time
+	14.590  * late time
+		only measured 3 and 8
+	14.600  *late time
+		2 disappears, 3 becomes giant
+		skip 4 because it's cut off
+		
+2005eq
+	-7.030
+		skip 1
+		take tiny 2/3 plateau
+		ignore 3/4 plateau
+		take right 4 peak
+		take middle of right 4 peak so 4 and 5 butt up
+		including 5/6 dip in 5 but ignoring plateau
+	5.890
+		ignore 3/4 dip
+		end 4 exactly at the end of the second dip
+		end of 7 as far right before it starts to go down
+		
+	5.900
+		6 is cut off so ignore
+	5.920
+		include little dip in between 1 and 2 as a part of 2
+		exclude 3/4 dip
+2005hc
+	-5.320
+		take right peak for 4
+		ignoring boundary for the left side of 5 so 4 and 5 butt up
+	-5.310
+		skipped -disgusting
+	-1.17
+		skip 1
+		ignore 3/4 dip
+		take right peak for 4
+		including the 5/6 dip in 5 but ignoring the plateau
+	.750
+		skip 1
+		ignore 3/4 dip
+		right peak
+		extend 6 farther right
+2005iq
+	10.87
+		skip 1
+		ignore 2 because 3 gets giant in late time
+		late phase but 5 and 6 still seem distinguishable so we measured
+2005kc
+	.470
+		first 3 features don't match the boundaries at all so we didn't measure them
+		including 5/6 dip as part of 5 but excluding the plateau
+	1.480	
+		skipping 1 and 2 because bounds are wrong
+		ignoring left bound with 3 because the bounds seem wrong
+		ignoring 3/4 dip
+		include 5/6 dip as part of 5, excluding plateau
+	14.420 *late time
+		skip 1
+		2 included as a part of 3
+		skip 5/6
+2005ke
+	-1.320
+		**looks really weird not sure if it's a different type
+		skip 1
+		ignore 6/7 dip
+	-0.320
+		skip 1
+		for this one and the last one the rightmost peak for 4 isn't included in 5's bounds so can't ignore 		it in 5
+		ignore 6/7 dip
+	0.570
+		skip 2 because it doesn't seem to exist
+		
+			
+		
+			
+		
+		
+
+
+
