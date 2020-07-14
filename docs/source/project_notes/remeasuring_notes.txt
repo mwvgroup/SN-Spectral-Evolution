@@ -168,11 +168,53 @@ Output file: final_csp.csv
 		ignore 6/7 dip
 	-0.320
 		skip 1
-		for this one and the last one the rightmost peak for 4 isn't included in 5's bounds so can't ignore 		it in 5
+		for this one and the last one the rightmost peak for 4 isn't included in 		5's bounds so can't ignore it in 5
 		ignore 6/7 dip
 	0.570
 		skip 2 because it doesn't seem to exist
-		
+	0.660
+		skip 1-3 because bounds don't make sense. 
+		can't take right peak for end of 4 because bounds for 5 don't include it. 
+		ignoring dip between 6 and 7
+	13.56
+		late time. 
+		measured 1 even though it looks odd. 
+		skipping 2 because late time. 
+		extending bounds for end of 4 to include peak. 
+		5 and 6 don't exist. Skipping 7 because bounds don't make sense. 
+2005ki -7.4
+		skipping 1. 
+		ignoring 3-4 dip. 
+		taking right edge of plateau for end of 4. 
+	-5.43
+		boundaries don't line up with obvious features. NEED TO REVISIT. 
+2005na 11.34
+		2 disappears into 3. 
+	11.35
+		2 disappears again. 
+		5 and 6 disappear. 
+	11.36
+2006D -6.02
+		take right peak for end of 4
+	-6.01
+		skip 2, not fully captured. 
+		ignoring 5 6 plateau
+	-6.00
+	1.97
+		ignore 3-4 "dip" 
+		take right peak for end of 4
+		ignore plateau between 5 and 6
+		splitting difference for 6-7 plateau
+
+2006ax -10.85
+		ignore 3-4 "dip"
+		take right end peak for 4
+		include dip but ignore plateau for 5-6
+	-9.96
+		skipping 1
+		ignoring 3-4 dip
+		taking right peak for end of 4
+	 
 			
 		
 			
