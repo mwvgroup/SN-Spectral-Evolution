@@ -150,7 +150,7 @@ Output file: final_csp.csv
 		late phase but 5 and 6 still seem distinguishable so we measured
 2005kc
 	.470
-		first 3 features don't match the boundaries at all so we didn't measure them
+		first 3 features don't match the boundaries at all so we didn't measure 		them
 		including 5/6 dip as part of 5 but excluding the plateau
 	1.480	
 		skipping 1 and 2 because bounds are wrong
@@ -298,6 +298,89 @@ Output file: final_csp.csv
 		skip 1 and 2
 		3 gets giant
 		take rightmost edge of 4
+2006mr -2.39
+		Odd looking spectrum
+		skip 1
+		2 not very well defined, but we measured it anyways
+		4 starts on a shoulder and we end on right peak
+		feature bounds don't seem to line up very nicely
+	-2.38
+		skip 6, looks cut off
+	1.58
+	4.67
+		skip 1
+		2 is extremely small
+		excluding 3-4 dip
+		take right ledge for end of 7 to extend
+	7.49
+		skip 1
+		skip 2 because late time
+		take right shoulder for end of 4
+		5 and 6 still appear 
+		
+	8.76
+		skip 2
+		take right ledge for end of 4
+		still able to measure 4 and 5
+	10.69
+		skip 1 and 2
+		5 and 6 very steep
+2007A -7.33
+		exclude 3-4 dip
+		
+	-7.31
+		ignore 5-6 plateau
+		extend end of 7 to rightmost peak
+	-7.3
+		6 is very small
+		extend 7 to right
+	-0.33
+		ignore 3-4 dip
+		take rightmost end peak for 4
+		include dip in 5 but exclude 5-6 plateau
+2007N 5.87
+		getting close to late-time like behavior 
+		5 and 6 very steep
+		extend right end of 7
+	7.85
+		very shallow start, skip 2
+		odd looking spectrum
+		skipping 4 because it gets cut off
+2007S -12.23
+		very early time
+		skipping 4 because it is cut off again
+	-0.32
+		skip 1
+		ignore 3-4 dip
+		take right peak for end of 4
+		extend 7 to right shoulder 
+	0.69 
+		skip 1
+		ignore 3-4 dip, take right peak at end of 4
+		
+	6.66
+	12.66
+		Late time
+		skip 1
+		skip 5 and 6
+2007af -10.75
+	-10.73
+		take right peak for 4
+		extend end of 7
+	-10.72
+	-4.79
+		skip 1
+		right end of 4
+	-0.77
+	-0.76
+		include 5-6 dip in 5
+	4.18
+		take right end of 4
+	4.20
+	11.2
+		late time
+		skip 2
+		5 and 6 really steep but still measurable 
 		
 		
 
