@@ -214,10 +214,90 @@ Output file: final_csp.csv
 		skipping 1
 		ignoring 3-4 dip
 		taking right peak for end of 4
-	 
-			
+	-8.86
+		skip 1
+		skip 3/4 dip
+		take right peak for 4
+		take middle of 6/7 plateau so they butt up
+	-2.830
+		skip 1
+		ignore 3/4 plateau
+		take rightmost peak of 4
+		ignore 5/6 plateau/dip
+	-1.880
+		skip 1
+		take end of little drop between 4 and 5 to extend 4
+		**forgot to save measurement for 7
+	0.030
+		skip 1
+		take rightmost peak for 4
+		ignore 5/6 plateau
+	14.16   *late time
+		skip 1
+		skip 2 because 3 is giant
+		take plateau in between 4 and 5 as part of 5
+		skip 5 and 6
+2006bh
+	8.080   *late time
+		skip 1 and 2
+		skip 5 and 6 because late time
+2006et	
+	10.040  *late time
+		skip 1 and 2
+		5 and 6 seem to be there even though it's late time so we're measuring
+	11.00   *late time
+		skip 1 and 2
+		skip 5/6 plateau
+2006gj
+	3.320
+		since it's not late time, we're measuring two as the dip in between the 		bounds	
+		include the dip in between 2 and 3 as a part of 3
+	5.280
+		skip 1
+		include 2/3 dip in 3
+		include little right dip in 7 to try and extend it as far as possible
+	6.280	
+		skip 1
+	13.240
+		skip whole thing
+		seems like the explosion is over
+	13.270
+		skip 1 and 2
+		3 is giant
+		take rightmost peak for 4	
+		skip 5 and 6
+2006gt
+	0.240
+		take right peak of 4
+	3.080
 		
-			
+2006hx 
+	-10.70  *early time
+		skip 1 and 2
+		take farther right peak for 4 so that it butts up w 5
+	-5.580
+		skip 1
+		start 2 right before it starts going down
+		ignore 5/6 dip
+		extend 7 as far as possible
+2006kf
+	-5.720
+		skip 1
+		take right peak for 4
+	1.18
+		ignore the 3/4 dip
+	1.20
+		ignore the 3/4 dip
+		include rightmost peak for 4
+		ignore 5/6 plateau
+	1.210
+		ignore 6 because it seems like it's cut off	
+		include 2/3 dip in 3
+		ignore 3/4 dip
+	14.230
+		skip 1 and 2
+		3 gets giant
+		take rightmost edge of 4
 		
 		
 
