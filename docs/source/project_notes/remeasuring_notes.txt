@@ -380,7 +380,105 @@ Output file: final_csp.csv
 	11.2
 		late time
 		skip 2
-		5 and 6 really steep but still measurable 
+		5 and 6 really steep but still measurable
+2007ax
+	-2.69
+		we measured 2 but it's really on a slant
+		extend 4 as far right as possible
+2007ba
+	2.59
+		ignore the 3/4 dip
+		ignore 5/6 plateau
+		include little dip in between 6 and 7 as part of 6 so they butt up
+	5.66
+		ignore the 3/4 dip
+2007bc
+	-0.91
+		ignore tiny 5/6 dip as part of 5
+	2.11
+		skip 1
+		ignore the 3/4 dip
+		ignore 5/6 plateau
+	7.10
+		skip 1
+		ignore 3/4 plateau
+2007bd
+	-7.13
+		ignore the bounds for the rightmost bound of 1
+		ignore the 3/4 dip
+	-4.220
+		skip 1
+		take rightmost peak of 4
+	0.82
+		skip 1
+	13.74   
+		**late time
+		skip 2 to make 3 giant
+		5 and 6 combine so skip both
+		take rightmost peak
+		skip the 5/6 plateau
+2007ca
+	4.14
+		skip 3/4 dip
+2007hj
+	5.75
+		measuring 2 but it's really on a slant
+	11.76
+		**late time
+		skip 2, 3 becomes giant
+		5 and 6 combine, don't measure either
+2007jg
+	-0.93
+		skip 1
+		take rightmost peak 4
+	10.01
+		**late time
+		skip 6 because it seems cut off
+2007le
+	-9.25
+		ignore the leftmost bound for 4 because it doesn't seem to quit
+	-4.32
+		skip the 3/4 plateau
+		put little dip in between 5/6 as a part of 5, ignore the plateau
+	-4.30
+		
+	2.69
+	
+	3.75
+	
+	3.77
+		
+	4.73
+	
+	10.71
+		**late time
+2007nq
+	2.74
+		ignore the 5/6 plateau
+	3.82
+		skip 4 because it seems unfinished
+	3.85
+	
+	3.87
+
+	4.82
+		ignore the bound for 2
+		as well as for 3
+	4.85
+		ignore the giant noise spike in 8
+	4.88
+	
+	9.76    **late time
+		5 and 6 combine and skip both
+	9.78
+		**late time
+	10.81
+		**late time
+		skip 4 and 5
+2007on
+		
+		
+		 
 		
 		
 
