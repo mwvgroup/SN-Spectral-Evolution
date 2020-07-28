@@ -475,7 +475,48 @@ Output file: final_csp.csv
 	10.81
 		**late time
 		skip 4 and 5
-2007on
+2007on -4.87
+		skip one
+		ignore 3-4 dip
+	-1.82
+		take right end peak for 4
+	1.06	here skip because broken and line through it
+	3.08
+		ignore 3-4 dip
+	3.1
+		ignore 3-4 dip
+	3.11
+	9.09 	** late time
+		skip 2
+		skip 5 and 6
+	14.02
+	14.04
+2008R 	1.69
+	2.76
+	14.69
+		late time, skip 2
+	14.71
+	14.73
+2008bc	-9.81
+		going out of bounds for start of 4 and take right peak
+	-9.79
+	-4.78
+		going out of bounds for start of 1
+		take right peak for end of 4
+	-3.68
+	4.35
+	4.37
+		ignore 3-4 dip
+	4.38
+	7.3
+	14.3
+		**late time
+2008bf	-9.23
+	-5.35
+		ignore 3-4 dip
+		right peak end of 4
+		
+	
 		
 		
 		 
