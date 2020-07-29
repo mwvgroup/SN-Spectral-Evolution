@@ -515,13 +515,68 @@ Output file: final_csp.csv
 	-5.35
 		ignore 3-4 dip
 		right peak end of 4
-		
+	-4.24
+		skip 1
+		ignore 3/4 dip
+	-1.19
+		skip 1
+	1.71
 	
-		
-		
-		 
-		
-		
+	8.72
+		skip 1
+		13.69
+2008fp
+	-3.2
+		skip 1
+		extend 7 to include the second little dip
+	0.82
 
+2008gl
+	4.37
+		skip 1 and 2
+2008gp
+
+2008hv
+	-6.19
+		go out of the bounds for the left bound of 1
+	1.86
+		left bound of 2 is on the second peak rather than the first because it 			seems like noise
+	7.74
+		late time!
+		extend 7
+	10.79
+2008ia
+	-2.15
+		6 doesnt seem to exist within the defined bounds, so we skipped it
+	
+	-2.13
+		6 isnt in the bounds so we went out of the bounds to measure it
+		extend 7
+		dont include the weird dip before 8 as a part of it, just the second dip
+	2.92
+		the bounds for 2 dont show a feature so we skipped 2 (seems like 2 			disappears even though its not late time
+		ignored the boundaries for 5
+		go outside of the boundaries for 6 because its saying its on the weird 			plateau and not where it clearly is
+	5.8
+		2 is funky again, doesn't exist
+		need to go out of the bounds for 5
+	10.83
+		late time so follow normal late time protocol
+2009D
+	-0.74
+		include the little dip on the right side of 5 to be a part of 5
+	0.17
+		exclude little dip at the beginning of 2 and just start at the big feature 		dip	
+		6 looks kinda funky but we measured it as best as we could as it looked 
+	2.17
+		include tiny dip on the right hand of 5
+	7.23
+2009F
+	-.78
+		we measured 2 even though it looks weird
+		seems weird that 5 has a huge bump in the middle, the whole pew looks like 		it would be negative
+	1.21
+		6 is not where the bounds say it is, so were skipping it
+		
 
 
