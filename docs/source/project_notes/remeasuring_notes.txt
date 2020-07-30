@@ -578,5 +578,29 @@ Output file: final_csp.csv
 	1.21
 		6 is not where the bounds say it is, so were skipping it
 		
-
+2009Y
+		a lot of measurements out of the bounds because the bounds didn't seem to 		fit, super early negative
+2009aa
+	-6.58
+	
+	-4.6
+	
+	10.44
+		5 and 6 both show up so we're measuring them even though it's late time
+2009ab
+	-9.9
+		skipping because of the weird line
+	-5.something
+		skipping because of the weird line again
+2009ad
+	-8.5
+	-7.46
+	-.5
+	2.51
+2009ag
+	-3.72
+	-2.65
+	-0.67
+		
+		
 
