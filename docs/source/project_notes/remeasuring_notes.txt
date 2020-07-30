@@ -150,7 +150,7 @@ Output file: final_csp.csv
 		late phase but 5 and 6 still seem distinguishable so we measured
 2005kc
 	.470
-		first 3 features don't match the boundaries at all so we didn't measure them
+		first 3 features don't match the boundaries at all so we didn't measure 		them
 		including 5/6 dip as part of 5 but excluding the plateau
 	1.480	
 		skipping 1 and 2 because bounds are wrong
@@ -214,12 +214,393 @@ Output file: final_csp.csv
 		skipping 1
 		ignoring 3-4 dip
 		taking right peak for end of 4
-	 
-			
+	-8.86
+		skip 1
+		skip 3/4 dip
+		take right peak for 4
+		take middle of 6/7 plateau so they butt up
+	-2.830
+		skip 1
+		ignore 3/4 plateau
+		take rightmost peak of 4
+		ignore 5/6 plateau/dip
+	-1.880
+		skip 1
+		take end of little drop between 4 and 5 to extend 4
+		**forgot to save measurement for 7
+	0.030
+		skip 1
+		take rightmost peak for 4
+		ignore 5/6 plateau
+	14.16   *late time
+		skip 1
+		skip 2 because 3 is giant
+		take plateau in between 4 and 5 as part of 5
+		skip 5 and 6
+2006bh
+	8.080   *late time
+		skip 1 and 2
+		skip 5 and 6 because late time
+2006et	
+	10.040  *late time
+		skip 1 and 2
+		5 and 6 seem to be there even though it's late time so we're measuring
+	11.00   *late time
+		skip 1 and 2
+		skip 5/6 plateau
+2006gj
+	3.320
+		since it's not late time, we're measuring two as the dip in between the 		bounds	
+		include the dip in between 2 and 3 as a part of 3
+	5.280
+		skip 1
+		include 2/3 dip in 3
+		include little right dip in 7 to try and extend it as far as possible
+	6.280	
+		skip 1
+	13.240
+		skip whole thing
+		seems like the explosion is over
+	13.270
+		skip 1 and 2
+		3 is giant
+		take rightmost peak for 4	
+		skip 5 and 6
+2006gt
+	0.240
+		take right peak of 4
+	3.080
 		
-			
+2006hx 
+	-10.70  *early time
+		skip 1 and 2
+		take farther right peak for 4 so that it butts up w 5
+	-5.580
+		skip 1
+		start 2 right before it starts going down
+		ignore 5/6 dip
+		extend 7 as far as possible
+2006kf
+	-5.720
+		skip 1
+		take right peak for 4
+	1.18
+		ignore the 3/4 dip
+	1.20
+		ignore the 3/4 dip
+		include rightmost peak for 4
+		ignore 5/6 plateau
+	1.210
+		ignore 6 because it seems like it's cut off	
+		include 2/3 dip in 3
+		ignore 3/4 dip
+	14.230
+		skip 1 and 2
+		3 gets giant
+		take rightmost edge of 4
+2006mr -2.39
+		Odd looking spectrum
+		skip 1
+		2 not very well defined, but we measured it anyways
+		4 starts on a shoulder and we end on right peak
+		feature bounds don't seem to line up very nicely
+	-2.38
+		skip 6, looks cut off
+	1.58
+	4.67
+		skip 1
+		2 is extremely small
+		excluding 3-4 dip
+		take right ledge for end of 7 to extend
+	7.49
+		skip 1
+		skip 2 because late time
+		take right shoulder for end of 4
+		5 and 6 still appear 
 		
+	8.76
+		skip 2
+		take right ledge for end of 4
+		still able to measure 4 and 5
+	10.69
+		skip 1 and 2
+		5 and 6 very steep
+2007A -7.33
+		exclude 3-4 dip
 		
+	-7.31
+		ignore 5-6 plateau
+		extend end of 7 to rightmost peak
+	-7.3
+		6 is very small
+		extend 7 to right
+	-0.33
+		ignore 3-4 dip
+		take rightmost end peak for 4
+		include dip in 5 but exclude 5-6 plateau
+2007N 5.87
+		getting close to late-time like behavior 
+		5 and 6 very steep
+		extend right end of 7
+	7.85
+		very shallow start, skip 2
+		odd looking spectrum
+		skipping 4 because it gets cut off
+2007S -12.23
+		very early time
+		skipping 4 because it is cut off again
+	-0.32
+		skip 1
+		ignore 3-4 dip
+		take right peak for end of 4
+		extend 7 to right shoulder 
+	0.69 
+		skip 1
+		ignore 3-4 dip, take right peak at end of 4
+		
+	6.66
+	12.66
+		Late time
+		skip 1
+		skip 5 and 6
+2007af -10.75
+	-10.73
+		take right peak for 4
+		extend end of 7
+	-10.72
+	-4.79
+		skip 1
+		right end of 4
+	-0.77
+	-0.76
+		include 5-6 dip in 5
+	4.18
+		take right end of 4
+	4.20
+	11.2
+		late time
+		skip 2
+		5 and 6 really steep but still measurable
+2007ax
+	-2.69
+		we measured 2 but it's really on a slant
+		extend 4 as far right as possible
+2007ba
+	2.59
+		ignore the 3/4 dip
+		ignore 5/6 plateau
+		include little dip in between 6 and 7 as part of 6 so they butt up
+	5.66
+		ignore the 3/4 dip
+2007bc
+	-0.91
+		ignore tiny 5/6 dip as part of 5
+	2.11
+		skip 1
+		ignore the 3/4 dip
+		ignore 5/6 plateau
+	7.10
+		skip 1
+		ignore 3/4 plateau
+2007bd
+	-7.13
+		ignore the bounds for the rightmost bound of 1
+		ignore the 3/4 dip
+	-4.220
+		skip 1
+		take rightmost peak of 4
+	0.82
+		skip 1
+	13.74   
+		**late time
+		skip 2 to make 3 giant
+		5 and 6 combine so skip both
+		take rightmost peak
+		skip the 5/6 plateau
+2007ca
+	4.14
+		skip 3/4 dip
+2007hj
+	5.75
+		measuring 2 but it's really on a slant
+	11.76
+		**late time
+		skip 2, 3 becomes giant
+		5 and 6 combine, don't measure either
+2007jg
+	-0.93
+		skip 1
+		take rightmost peak 4
+	10.01
+		**late time
+		skip 6 because it seems cut off
+2007le
+	-9.25
+		ignore the leftmost bound for 4 because it doesn't seem to quit
+	-4.32
+		skip the 3/4 plateau
+		put little dip in between 5/6 as a part of 5, ignore the plateau
+	-4.30
+		
+	2.69
+	
+	3.75
+	
+	3.77
+		
+	4.73
+	
+	10.71
+		**late time
+2007nq
+	2.74
+		ignore the 5/6 plateau
+	3.82
+		skip 4 because it seems unfinished
+	3.85
+	
+	3.87
 
+	4.82
+		ignore the bound for 2
+		as well as for 3
+	4.85
+		ignore the giant noise spike in 8
+	4.88
+	
+	9.76    **late time
+		5 and 6 combine and skip both
+	9.78
+		**late time
+	10.81
+		**late time
+		skip 4 and 5
+2007on -4.87
+		skip one
+		ignore 3-4 dip
+	-1.82
+		take right end peak for 4
+	1.06	here skip because broken and line through it
+	3.08
+		ignore 3-4 dip
+	3.1
+		ignore 3-4 dip
+	3.11
+	9.09 	** late time
+		skip 2
+		skip 5 and 6
+	14.02
+	14.04
+2008R 	1.69
+	2.76
+	14.69
+		late time, skip 2
+	14.71
+	14.73
+2008bc	-9.81
+		going out of bounds for start of 4 and take right peak
+	-9.79
+	-4.78
+		going out of bounds for start of 1
+		take right peak for end of 4
+	-3.68
+	4.35
+	4.37
+		ignore 3-4 dip
+	4.38
+	7.3
+	14.3
+		**late time
+2008bf	-9.23
+	-5.35
+		ignore 3-4 dip
+		right peak end of 4
+	-4.24
+		skip 1
+		ignore 3/4 dip
+	-1.19
+		skip 1
+	1.71
+	
+	8.72
+		skip 1
+		13.69
+2008fp
+	-3.2
+		skip 1
+		extend 7 to include the second little dip
+	0.82
 
+2008gl
+	4.37
+		skip 1 and 2
+2008gp
+
+2008hv
+	-6.19
+		go out of the bounds for the left bound of 1
+	1.86
+		left bound of 2 is on the second peak rather than the first because it 			seems like noise
+	7.74
+		late time!
+		extend 7
+	10.79
+2008ia
+	-2.15
+		6 doesnt seem to exist within the defined bounds, so we skipped it
+	
+	-2.13
+		6 isnt in the bounds so we went out of the bounds to measure it
+		extend 7
+		dont include the weird dip before 8 as a part of it, just the second dip
+	2.92
+		the bounds for 2 dont show a feature so we skipped 2 (seems like 2 			disappears even though its not late time
+		ignored the boundaries for 5
+		go outside of the boundaries for 6 because its saying its on the weird 			plateau and not where it clearly is
+	5.8
+		2 is funky again, doesn't exist
+		need to go out of the bounds for 5
+	10.83
+		late time so follow normal late time protocol
+2009D
+	-0.74
+		include the little dip on the right side of 5 to be a part of 5
+	0.17
+		exclude little dip at the beginning of 2 and just start at the big feature 		dip	
+		6 looks kinda funky but we measured it as best as we could as it looked 
+	2.17
+		include tiny dip on the right hand of 5
+	7.23
+2009F
+	-.78
+		we measured 2 even though it looks weird
+		seems weird that 5 has a huge bump in the middle, the whole pew looks like 		it would be negative
+	1.21
+		6 is not where the bounds say it is, so were skipping it
+		
+2009Y
+		a lot of measurements out of the bounds because the bounds didn't seem to 		fit, super early negative
+2009aa
+	-6.58
+	
+	-4.6
+	
+	10.44
+		5 and 6 both show up so we're measuring them even though it's late time
+2009ab
+	-9.9
+		skipping because of the weird line
+	-5.something
+		skipping because of the weird line again
+2009ad
+	-8.5
+	-7.46
+	-.5
+	2.51
+2009ag
+	-3.72
+	-2.65
+	-0.67
+		
+		
 
