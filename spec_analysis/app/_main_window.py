@@ -567,6 +567,10 @@ class MainWindow(QtWidgets.QMainWindow):
             QMessageBox.about(self, 'Error', err_msg)
             self.current_feat_results = None
 
+        except Exception as e:
+            QMessageBox.about(self, 'Error', str(e))
+            self.current_feat_results = None
+
         else:
             self.current_feat_results.extend(sampling_results)
             velocity = sampling_results[0]
