@@ -1,5 +1,5 @@
 bokeh
-sndata>=1.1.1
+sndata==1.1.1
 PyQt5
 pyqtgraph
 astropy>=4.0

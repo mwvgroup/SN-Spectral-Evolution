@@ -82,7 +82,7 @@ def pre_process(table):
     return table
 
 
-def create_sdss_data_iter():
+def create_sdss_data_iter(start_at=None):
     """Return an iterator over SDSS spectra
 
     Only includes objects that are spectroscopically confirmed Ia
@@ -96,15 +96,19 @@ def create_sdss_data_iter():
     obj_ids = spec_summary[spec_summary['Type'] == 'Ia']['CID']
     obj_ids = sorted(obj_ids, key=int)
 
+    if start_at:
+        obj_ids = obj_ids[obj_ids.index(start_at):]
+
     return SpectraIterator(sako_18_spec, obj_ids=obj_ids, pre_process=pre_process, group_by='phase')
 
 
-def main(config_path, out_path):
+def main(config_path, out_path, start_at=None):
     """Load setting and launch the GUI
 
     Args:
         config_path (str): Path of the config file
         out_path    (str): Path of output csv
+        start_at    (Str): The object id to start at
     """
 
     # Load application settings
@@ -112,11 +116,12 @@ def main(config_path, out_path):
         config_dict = yaml.safe_load(config_file)
 
     # Build data iterator
-    data_iter = create_sdss_data_iter()
+    data_iter = create_sdss_data_iter(start_at=start_at)
 
     # Run the GUI
     run(data_iter, out_path, config_dict)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    start_at = sys.argv[3] if len(sys.argv) == 4 else None
+    main(sys.argv[1], sys.argv[2], start_at=start_at)
