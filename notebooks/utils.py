@@ -18,6 +18,17 @@ sdss_master_table = sako_18_spec.load_table('master').to_pandas(index='CID')
 dr3 = DR3()
 csp_table_3 = dr3.load_table(3).to_pandas(index='SN')
 
+proposed_cutoff = 7
+feature_alias = {
+    'pW1': 'Ca ii H&K',
+    'pW2': 'Si ii λ4130',
+    'pW3': 'Mg ii, Fe ii',
+    'pW4': 'Fe ii, Si ii',
+    'pW5': 'S ii λ5449, λ5622',
+    'pW6': 'Si ii λ5972',
+    'pW7': 'Si ii λ6355',
+    'pW8': 'Ca ii IR triplet'}
+
 
 @np.vectorize
 def get_csp_t0(obj_id):
@@ -129,7 +140,10 @@ def read_in_pipeline_result(path, survey, drop_flagged=False):
         sako_master = sako_18_spec.load_table('master').to_pandas()
         sako_master = sako_master.rename({'CID': 'obj_id'}, axis='columns')
         sako_master['obj_id'] = sako_master.obj_id.astype(int)
-        sako_master = sako_master.set_index('obj_id')
+        sako_master = sako_master.set_index('obj_id').replace(-99, np.nan)
+        
+        sako_master['arcmin'] = sako_master.separationhost / 60
+        sako_master['kpc'] = wmap9.kpc_comoving_per_arcmin(sako_master.arcmin)
 
         df = df.join(sako_master, how='inner')
         
