@@ -13,9 +13,11 @@ from sndata.sdss import Sako18Spec
 from sndata.utils import convert_to_jd
 
 sako_18_spec = Sako18Spec()
+sako_18_spec.download_module_data()
 sdss_master_table = sako_18_spec.load_table('master').to_pandas(index='CID')
 
 dr3 = DR3()
+dr3.download_module_data()
 csp_table_3 = dr3.load_table(3).to_pandas(index='SN')
 
 proposed_cutoff = 7
